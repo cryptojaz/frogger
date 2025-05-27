@@ -48,7 +48,6 @@ export class Game {
             this.setupCamera();
             this.setupLighting();
             
-
             // Load initial level (Level 1 - Classic Frogger)
             await this.loadLevel(this.currentLevel);
             
@@ -64,8 +63,6 @@ export class Game {
             throw error;
         }
     }
-    
-
     
     setupRenderer() {
         if (!this.canvas) {
@@ -156,21 +153,65 @@ export class Game {
         console.log('💡 Lighting setup complete');
     }
     
+    // ✅ SIMPLE RESTART - No complex WebGL cleanup
+    async restartGame() {
+        console.log('🔄 Simple restart - just reset positions...');
+        
+        // Reset game state
+        this.isPlaying = false;
+        this.gameOver = false;
+        this.levelComplete = false;
+        this.score = 0;
+        this.lives = 3;
+        this.currentLevel = 1;
+        
+        // ✅ Clear riding state on restart
+        if (this.player) {
+            this.player.ridingLog = null;
+            this.player.setPosition(0, 0, 12);
+        }
+        
+        // Simple level disposal and reload
+        if (this.level) {
+            this.level.dispose(); // Uses new simple dispose
+            this.level = null;
+        }
+        
+        // Load fresh level
+        await this.loadLevel(1);
+        
+        // Update UI
+        this.ui.updateScore(this.score);
+        this.ui.updateLives(this.lives);
+        this.ui.updateLevel(this.currentLevel);
+        this.ui.hideGameOver();
+        
+        this.startGame();
+        
+        console.log('✅ Simple restart complete');
+    }
+    
     async loadLevel(levelNumber) {
         try {
             console.log(`🏗️ Loading level ${levelNumber}...`);
             
-            // Dispose of previous level to free memory
+            // Simple cleanup before creating new level
             if (this.level) {
+                console.log('🧹 Disposing previous level...');
                 this.level.dispose();
                 this.level = null;
+                
+                // Brief pause for cleanup
+                await new Promise(resolve => setTimeout(resolve, 100));
             }
             
-            // Create new level
+            // Create new level with cached materials
+            console.log('🔧 Creating level...');
             this.level = new Level(this.scene, levelNumber, this.WORLD_WIDTH, this.WORLD_DEPTH);
             await this.level.create();
             
             console.log(`✅ Level ${levelNumber} loaded successfully`);
+            
         } catch (error) {
             console.error(`❌ Failed to load level ${levelNumber}:`, error);
             throw error;
@@ -184,6 +225,9 @@ export class Game {
             // Pass audioManager to player constructor
             this.player = new Player(this.scene, this.audioManager);
             this.player.create();
+            
+            // ✅ Initialize riding state
+            this.player.ridingLog = null;
             
             // Start position at bottom of screen
             this.player.setPosition(0, 0, 12);
@@ -213,38 +257,6 @@ export class Game {
         this.ui.updateLevel(this.currentLevel);
         
         console.log('🎮 Game started! Rendering should begin...');
-        
-        // Force a render to make sure everything is visible
-        if (this.renderer && this.scene && this.camera) {
-            this.renderer.render(this.scene, this.camera);
-            console.log('🎮 Force render executed');
-        }
-    }
-    
-    restartGame() {
-        this.score = 0;
-        this.lives = 3;
-        this.currentLevel = 1;
-        this.gameOver = false;
-        this.levelComplete = false;
-        
-        // Reset player position
-        if (this.player) {
-            this.player.setPosition(0, 0, 12);
-        }
-        
-        // Reload level 1
-        this.loadLevel(1);
-        
-        // Update UI
-        this.ui.updateScore(this.score);
-        this.ui.updateLives(this.lives);
-        this.ui.updateLevel(this.currentLevel);
-        this.ui.hideGameOver();
-        
-        this.startGame();
-        
-        console.log('🔄 Game restarted');
     }
     
     async nextLevel() {
@@ -260,8 +272,9 @@ export class Game {
         // Load next level
         await this.loadLevel(this.currentLevel);
         
-        // Reset player position
+        // Reset player position and clear riding state
         if (this.player) {
+            this.player.ridingLog = null;
             this.player.setPosition(0, 0, 12);
         }
         
@@ -274,10 +287,16 @@ export class Game {
         console.log(`🆙 Advanced to level ${this.currentLevel}`);
     }
     
+    // ✅ ENHANCED MOVE PLAYER - Supports stable log physics
     movePlayer(dx, dy, dz) {
         if (!this.isPlaying || this.gameOver || this.levelComplete || !this.player) return;
         
-        console.log(`🐸 Moving player: (${dx}, ${dy}, ${dz})`);
+        // ✅ STABLE LOG PHYSICS: Allow deliberate movement while riding log
+        if (this.player.ridingLog) {
+            console.log(`🪵 Frog on stable log - allowing controlled movement`);
+            // Automatic log movement is handled in checkCollisions()
+            // This just adds player input on top of that
+        }
         
         this.player.move(dx, dy, dz);
         this.updatePlayerBounds();
@@ -289,14 +308,15 @@ export class Game {
         }
     }
     
+    // ✅ UPDATED PLAYER BOUNDS for new level layout
     updatePlayerBounds() {
         if (!this.player) return;
         
-        // Keep player within game boundaries
+        // Updated bounds for new level layout
         const bounds = {
             minX: -this.WORLD_WIDTH / 2 + 1,
             maxX: this.WORLD_WIDTH / 2 - 1,
-            minZ: -15,
+            minZ: -17,  // ✅ Allow reaching GFL goal building
             maxZ: 15
         };
         
@@ -307,6 +327,7 @@ export class Game {
         // Update mesh position
         if (this.player.mesh) {
             this.player.mesh.position.copy(pos);
+            this.player.mesh.position.y += 1; // Keep frog above ground
         }
     }
     
@@ -361,89 +382,120 @@ export class Game {
         this.checkWinCondition();
     }
     
+    // ✅ UPDATED COLLISION DETECTION for new level layout and stable log physics
     checkCollisions() {
         if (!this.level || !this.player) return;
         
         const playerPos = this.player.position;
         const obstacles = this.level.getObstacles();
         
-        // Define game zones more precisely
-        const roadZone = playerPos.z >= 1 && playerPos.z <= 11;      // Road area
-        const medianZone = playerPos.z >= -1 && playerPos.z <= 1;    // SAFE median strip
-        const waterZone = playerPos.z >= -11 && playerPos.z <= -1;   // Water area
-        const startZone = playerPos.z >= 11;                         // Starting grass
-        const goalZone = playerPos.z <= -11;                         // Goal area
+        // ✅ UPDATED GAME ZONES for new polished layout
+        const roadZone = playerPos.z >= 1 && playerPos.z <= 11;           // Road area
+        const safeMedianZone = playerPos.z >= -5 && playerPos.z <= 0;     // ✅ Wide safe median (6 units)
+        const waterZone = playerPos.z >= -13 && playerPos.z <= -5;        // ✅ Water area (adjusted for new positions)
+        const startZone = playerPos.z >= 11;                              // Starting grass
+        const goalZone = playerPos.z <= -13;                              // ✅ GFL goal building area
         
-        console.log(`🐸 Player at Z: ${playerPos.z.toFixed(1)} - Zone: ${
+        // Debug output (uncomment to see zones)
+       /* console.log(`🐸 Frog at Z: ${playerPos.z.toFixed(1)} - Zone: ${
             roadZone ? 'ROAD' : 
-            medianZone ? 'SAFE MEDIAN' : 
+            safeMedianZone ? 'SAFE MEDIAN' : 
             waterZone ? 'WATER' : 
             startZone ? 'START' : 
             goalZone ? 'GOAL' : 'UNKNOWN'
         }`);
+        */
         
         if (waterZone) {
-            // Player is in water - must be on a rideable object or DIE
-            let onRideableObject = false;
+            // ✅ STABLE LOG PHYSICS - Player must be on log or drown
+            let onStableLog = false;
+            let ridingLog = null;
             
             for (const obstacle of obstacles) {
-                if (obstacle.isRideable && ['log', 'turtle'].includes(obstacle.type)) {
+                if (obstacle.isRideable && obstacle.type === 'log') {
                     const distance = playerPos.distanceTo(obstacle.position);
-                    if (distance < 2.5) { // Larger collision area for easier riding
-                        onRideableObject = true;
+                    if (distance < 3.0) { // Generous collision area for easier riding
+                        onStableLog = true;
+                        ridingLog = obstacle;
                         
-                        // Move player WITH the log/turtle
-                        const deltaTime = 0.016; // Approximate frame time
-                        this.player.position.x += obstacle.velocity.x * deltaTime;
+                        // ✅ STABLE MOVEMENT: Player moves WITH log automatically
+                        // No extra sensitivity - just smooth movement with the log
+                        const logMovement = obstacle.velocity.x * 0.016; // Smooth frame-rate independent
+                        this.player.position.x += logMovement;
                         this.updatePlayerBounds();
                         
-                        console.log(`🪵 Frog riding on ${obstacle.type}`);
+                        // Store riding state for input handling
+                        this.player.ridingLog = ridingLog;
+                        
+                        console.log(`🪵 Frog stable on log - moving with current`);
                         break;
                     }
                 }
             }
             
-            if (!onRideableObject) {
+            if (!onStableLog) {
+                // Clear riding state
+                this.player.ridingLog = null;
                 console.log(`💀 Frog drowned in water at Z: ${playerPos.z.toFixed(1)}!`);
                 this.playerHit();
                 return;
             }
             
-        } else if (roadZone) {
-            // On road - check for deadly vehicle collisions
-            for (const obstacle of obstacles) {
-                if (!obstacle.isRideable && ['cybertruck', 'taxi', 'sportscar'].includes(obstacle.type)) {
-                    const distance = playerPos.distanceTo(obstacle.position);
-                    if (distance < 1.8) { // Vehicle collision
-                        console.log(`💀 Frog hit by ${obstacle.type} on road!`);
-                        this.playerHit();
-                        break;
+        } else {
+            // ✅ CLEAR RIDING STATE when not in water
+            this.player.ridingLog = null;
+            
+            if (roadZone) {
+                // Road collision detection
+                for (const obstacle of obstacles) {
+                    if (!obstacle.isRideable && ['cybertruck', 'taxi', 'sportscar'].includes(obstacle.type)) {
+                        const distance = playerPos.distanceTo(obstacle.position);
+                        if (distance < 1.8) {
+                            console.log(`💀 Frog hit by ${obstacle.type} on road!`);
+                            this.playerHit();
+                            break;
+                        }
                     }
                 }
+                
+            } else if (safeMedianZone || startZone || goalZone) {
+                // ✅ SAFE ZONES - no collision checks needed
+                //console.log(`✅ Frog in safe zone`);
+                
+            } else {
+                console.log(`⚠️ Frog in unknown zone at Z: ${playerPos.z.toFixed(1)}`);
             }
-            
-        } else if (medianZone || startZone || goalZone) {
-            // SAFE ZONES - no collision checks needed
-            console.log(`✅ Frog in safe zone`);
-            
-        } else {
-            // Unknown zone - shouldn't happen but just in case
-            console.log(`⚠️ Frog in unknown zone at Z: ${playerPos.z.toFixed(1)}`);
         }
     }
     
+    // ✅ UPDATED WIN CONDITION for GFL goal building
     checkWinCondition() {
         if (!this.player) return;
         
-        // Check if player reached the goal (top of screen)
-        if (this.player.position.z < -12) {
-            this.levelCompleted();
+        // ✅ GFL BUILDING WIN CONDITION: Player reached the goal building area
+        if (this.player.position.z < -13) {
+            // Check if player is near the GFL goal building
+            const goals = this.level.getGoals();
+            for (const goalBuilding of goals) {
+                const distance = this.player.position.distanceTo(goalBuilding.position);
+                if (distance < 8) { // Within building area
+                    console.log('🏆 Frog reached the GFL goal building!');
+                    this.levelCompleted();
+                    return;
+                }
+            }
         }
     }
     
+    // ✅ ENHANCED PLAYER HIT with riding state cleanup
     playerHit() {
         this.lives--;
         this.ui.updateLives(this.lives);
+        
+        // ✅ Clear riding state on hit
+        if (this.player) {
+            this.player.ridingLog = null;
+        }
         
         // Play lose sound
         if (this.audioManager) {
@@ -469,6 +521,11 @@ export class Game {
         this.ui.updateScore(this.score);
         this.ui.showLevelComplete(this.currentLevel + 1);
         
+        // ✅ Clear riding state on level complete
+        if (this.player) {
+            this.player.ridingLog = null;
+        }
+        
         // Play level finish sound
         if (this.audioManager) {
             this.audioManager.playSFX('levelfinish');
@@ -480,6 +537,11 @@ export class Game {
     endGame(victory = false) {
         this.isPlaying = false;
         this.gameOver = true;
+        
+        // ✅ Clear riding state on game end
+        if (this.player) {
+            this.player.ridingLog = null;
+        }
         
         // Stop music
         if (this.audioManager) {
@@ -531,11 +593,46 @@ export class Game {
     
     // Memory cleanup
     dispose() {
+        console.log('🧹 Disposing game resources...');
+        
         if (this.level) {
             this.level.dispose();
+            this.level = null;
         }
+        
         if (this.player) {
             this.player.dispose();
+            this.player = null;
         }
+        
+        console.log('✅ Game disposal complete');
     }
 }
+
+// ✅ COMPLETE GAME.JS SUMMARY:
+//
+// 1. ✅ UPDATED GAME ZONES:
+//    - Road: Z 1 to 11 (cars)
+//    - Safe median: Z -5 to 0 (6-unit wide safe walking area)
+//    - Water: Z -13 to -5 (logs)
+//    - Goal: Z < -13 (GFL building)
+//
+// 2. ✅ STABLE LOG PHYSICS:
+//    - player.ridingLog tracks which log player is on
+//    - Automatic smooth movement with log (no sensitivity issues)
+//    - Player input still works while on log for deliberate movement
+//    - Clear riding state on hit/restart/level change
+//
+// 3. ✅ GFL GOAL BUILDING:
+//    - Win condition: reach building area (Z < -13 and within 8 units of building)
+//    - Updated player bounds to allow reaching goal (minZ: -17)
+//
+// 4. ✅ SIMPLE RESTART:
+//    - No complex WebGL cleanup
+//    - Uses cached materials for fast restart
+//    - Clears riding state properly
+//
+// 5. ✅ ENHANCED SAFETY:
+//    - Wide safe median zone (6 units) for left/right movement
+//    - Clear zone separation prevents accidental zone crossings
+//    - Debug output shows current zone

@@ -49,31 +49,27 @@ export class Vehicle {
     
     // Load textures
     static getTexture(vehicleType) {
-        if (!Vehicle._textures) Vehicle._textures = {};
+        // ✅ NEVER CACHE - Always create fresh textures
+        const textureLoader = new THREE.TextureLoader();
+        const filename = `${vehicleType}.png`;
         
-        if (!Vehicle._textures[vehicleType]) {
-            const textureLoader = new THREE.TextureLoader();
-            const filename = `${vehicleType}.png`;
-            
-            console.log(`🖼️ Loading ${vehicleType} from ${filename}`);
-            
-            Vehicle._textures[vehicleType] = textureLoader.load(
-                filename,
-                (texture) => {
-                    console.log(`✅ ${vehicleType} texture loaded successfully`);
-                    console.log(`   Image size: ${texture.image.width} x ${texture.image.height}`);
-                    texture.wrapS = THREE.ClampToEdgeWrapping;
-                    texture.wrapT = THREE.ClampToEdgeWrapping;
-                    texture.flipY = false;
-                },
-                undefined,
-                (error) => {
-                    console.error(`❌ Failed to load ${vehicleType}:`, error);
-                    Vehicle._textures[vehicleType] = null;
-                }
-            );
-        }
-        return Vehicle._textures[vehicleType];
+        console.log(`🖼️ Creating FRESH texture for ${vehicleType}`);
+        
+        const texture = textureLoader.load(
+            filename,
+            (texture) => {
+                console.log(`✅ Fresh ${vehicleType} texture loaded`);
+                texture.wrapS = THREE.ClampToEdgeWrapping;
+                texture.wrapT = THREE.ClampToEdgeWrapping;
+                texture.flipY = false;
+            },
+            undefined,
+            (error) => {
+                console.error(`❌ Failed to load ${vehicleType}:`, error);
+            }
+        );
+        
+        return texture;
     }
     
     create() {
@@ -168,7 +164,7 @@ export class Vehicle {
                 this.isRideable = true;
                 
                 // Add invisible collision box for easier riding
-                const collisionGeometry = new THREE.BoxGeometry(8, 1, 1.5); // Larger collision area
+                const collisionGeometry = new THREE.BoxGeometry(8, 1, 2); // Larger collision area
                 const collisionMaterial = new THREE.MeshBasicMaterial({ 
                     transparent: true, 
                     opacity: 0,
@@ -180,45 +176,7 @@ export class Vehicle {
                 console.log(`🪵 Enhanced log with larger collision area created`);
                 break;
                 
-            case 'turtle':
-                // Turtles are RIDEABLE platforms
-                geometry = new THREE.SphereGeometry(0.6, 12, 8);
-                material = new THREE.MeshLambertMaterial({ color: 0x228B22 });
-                this.mesh = new THREE.Mesh(geometry, material);
-                this.mesh.scale.set(1.2, 0.4, 1.5); // Flatter and wider
-                this.isRideable = true; // FROG CAN RIDE TURTLES!
-                
-                // Add shell pattern
-                const shellGeometry = new THREE.SphereGeometry(0.5, 12, 8);
-                const shellMaterial = new THREE.MeshLambertMaterial({ color: 0x006400 });
-                const shell = new THREE.Mesh(shellGeometry, shellMaterial);
-                shell.position.y = 0.1;
-                shell.scale.set(1.1, 0.3, 1.3);
-                this.mesh.add(shell);
-                break;
-                
-            case 'crocodile':
-                // Crocodiles are DANGEROUS - frog should avoid!
-                geometry = new THREE.BoxGeometry(2.5, 0.4, 0.8);
-                material = new THREE.MeshLambertMaterial({ color: 0x556B2F });
-                this.mesh = new THREE.Mesh(geometry, material);
-                this.isRideable = false; // DANGEROUS! FROG SHOULD AVOID!
-                
-                // Add glowing red eyes to show danger
-                const eyeGeometry = new THREE.SphereGeometry(0.08, 6, 4);
-                const eyeMaterial = new THREE.MeshLambertMaterial({ 
-                    color: 0xff0000,
-                    emissive: 0x220000 
-                });
-                
-                const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-                leftEye.position.set(-0.2, 0.25, 1.0);
-                this.mesh.add(leftEye);
-                
-                const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-                rightEye.position.set(0.2, 0.25, 1.0);
-                this.mesh.add(rightEye);
-                break;
+
         }
         
         if (this.mesh) {

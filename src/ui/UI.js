@@ -22,10 +22,13 @@ export class UI {
             this.emit('startGame');
         });
         
-        // Restart button
-        document.getElementById('restart-btn').addEventListener('click', () => {
-            this.emit('restartGame');
-        });
+    // Restart button - handle async
+    document.getElementById('restart-btn').addEventListener('click', async () => {
+        // ✅ Show loading state while restarting
+   
+        this.emit('restartGame');
+        // Note: The loading state will be hidden when game actually starts
+    });
         
         // Continue button - MODIFIED FOR TEMPORARY MESSAGE
         document.getElementById('continue-btn').addEventListener('click', () => {
@@ -34,14 +37,16 @@ export class UI {
         });
         
         // Keyboard shortcut for start/restart
-        document.addEventListener('keydown', (event) => {
+        document.addEventListener('keydown', async (event) => {
             if (event.code === 'Space') {
                 if (!this.elements.startMessage.classList.contains('hidden')) {
                     this.emit('startGame');
                 } else if (!this.elements.gameOverMessage.classList.contains('hidden')) {
+                    // ✅ Show loading state for restart
+                  
                     this.emit('restartGame');
                 } else if (!this.elements.levelCompleteMessage.classList.contains('hidden')) {
-                    // MODIFIED: Show Level 2 coming soon instead of continuing
+                    // Show Level 2 coming soon instead of continuing
                     this.showLevel2ComingSoon();
                 }
                 event.preventDefault();
@@ -92,9 +97,7 @@ export class UI {
                         <button id="restart-level1-btn" class="option-btn primary">
                             🔄 Play Level 1 Again
                         </button>
-                        <button id="perfect-score-btn" class="option-btn secondary">
-                            🏆 Try for Perfect Score
-                        </button>
+               
                     </div>
                 </div>
                 <div class="development-note">

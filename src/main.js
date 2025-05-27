@@ -28,6 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// In main.js, update the UI event listeners to handle async operations:
+
 function initializeGame(audioManager = null) {
     console.log('🚀 Initializing game...');
     
@@ -42,60 +44,48 @@ function initializeGame(audioManager = null) {
     // Create UI instance - this handles all the start screen logic
     ui = new UI();
     
-    // Set up UI event listeners
-    ui.on('startGame', () => {
-        console.log('🎮 Start game event from UI');
-        if (game) {
-            game.startGame();
-        }
-    });
+    // Set up UI event listeners with async support
+// In main.js, simplify the restart handler:
+
+// ✅ Simple restart handler - no loading state complexity needed
+ui.on('restartGame', async () => {
+    console.log('🔄 Restart game event from UI');
+    if (game) {
+        await game.restartGame(); // Just await it
+    }
+});
+
+// Also remove the hideLoadingOnGameStart() call from startGame:
+ui.on('startGame', () => {
+    console.log('🎮 Start game event from UI');
+    if (game) {
+        game.startGame();
+        // ❌ Remove this line: ui.hideLoadingOnGameStart();
+    }
+});
     
-    ui.on('restartGame', () => {
-        console.log('🔄 Restart game event from UI');
-        if (game) {
-            game.restartGame();
-        }
-    });
-    
-    ui.on('continueGame', () => {
-        console.log('➡️ Continue game event from UI');
-        if (game) {
-            game.nextLevel();
-        }
-    });
-    
-    // Create game UI interface that matches your UI.js
+    // ✅ Handle async continue properly  
+// In main.js, replace the broken continueGame handler:
+
+ui.on('continueGame', async () => {
+    console.log('➡️ Continue game event from UI');
+    if (game) {
+        await game.nextLevel(); // Just await it, no broken loading calls
+    }
+});
+
+    // Rest of the function stays the same...
     const gameUI = {
-        updateScore: (score) => {
-            ui.updateScore(score);
-        },
-        updateLives: (lives) => {
-            ui.updateLives(lives);
-        },
-        updateLevel: (level) => {
-            ui.updateLevel(level);
-        },
-        showStartScreen: () => {
-            ui.showStartScreen();
-        },
-        hideStartScreen: () => {
-            ui.hideStartScreen();
-        },
-        showHUD: () => {
-            ui.showHUD();
-        },
-        showGameOver: (finalScore) => {
-            ui.showGameOver(finalScore);
-        },
-        hideGameOver: () => {
-            ui.hideGameOver();
-        },
-        showLevelComplete: (nextLevel) => {
-            ui.showLevelComplete(nextLevel);
-        },
-        hideLevelComplete: () => {
-            ui.hideLevelComplete();
-        }
+        updateScore: (score) => ui.updateScore(score),
+        updateLives: (lives) => ui.updateLives(lives),
+        updateLevel: (level) => ui.updateLevel(level),
+        showStartScreen: () => ui.showStartScreen(),
+        hideStartScreen: () => ui.hideStartScreen(),
+        showHUD: () => ui.showHUD(),
+        showGameOver: (finalScore) => ui.showGameOver(finalScore),
+        hideGameOver: () => ui.hideGameOver(),
+        showLevelComplete: (nextLevel) => ui.showLevelComplete(nextLevel),
+        hideLevelComplete: () => ui.hideLevelComplete()
     };
 
     // Create and initialize the game
@@ -103,18 +93,13 @@ function initializeGame(audioManager = null) {
     
     game.init().then(() => {
         console.log('✅ Game initialization completed!');
-        
-        // Set up control event listeners
         setupControls(game);
         
-        // Handle window resize
         window.addEventListener('resize', () => {
             game.handleResize();
         });
         
-        // Show start screen and wait for user to click start
         ui.showStartScreen();
-        
         console.log('🎮 Game ready - click START GAME or press SPACE to begin');
         
     }).catch(error => {
