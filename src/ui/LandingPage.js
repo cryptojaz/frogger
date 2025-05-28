@@ -12,9 +12,9 @@ export class LandingPage {
     
     init() {
         this.createLandingHTML();
-        this.selectRandomImage();
+        this.selectRandomImage(); // Start with random image
         this.setupEventListeners();
-        this.startImageCycle();
+        // Remove auto-cycling - now only dice button changes image
         this.initializeAudio();
     }
     
@@ -25,9 +25,7 @@ export class LandingPage {
                 <div class="landing-content">
                     <div class="landing-image-container">
                         <img id="landing-image" src="" alt="3D Frogger" />
-                        <div class="image-indicator">
-                            <span id="image-counter">1 / 7</span>
-                        </div>
+                        <!-- Removed image indicator counter -->
                     </div>
                     
                     <div class="landing-info">
@@ -52,8 +50,7 @@ export class LandingPage {
                             </button>
                             
                             <div class="landing-navigation">
-                         
-                                <button id="random-image" class="nav-btn">🎲</button>
+                                <button id="random-image" class="nav-btn" title="Shuffle Image">🎲</button>
                                 <button id="info-button" class="nav-btn info-btn" title="Game Info & Levels">
                                     <span class="info-icon">ℹ️</span>
                                 </button>
@@ -210,7 +207,7 @@ export class LandingPage {
         // Insert at the beginning of body
         document.body.insertAdjacentHTML('afterbegin', landingHTML);
         
-        // Add the CSS
+        // Add the CSS (same as before but without image indicator styles)
         this.addLandingStyles();
     }
     
@@ -259,19 +256,6 @@ export class LandingPage {
                 #landing-image:hover {
                     transform: scale(1.02);
                     box-shadow: 0 25px 80px rgba(0, 255, 150, 0.4);
-                }
-                
-                .image-indicator {
-                    position: absolute;
-                    bottom: -40px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    background: rgba(0, 0, 0, 0.7);
-                    color: #00ff96;
-                    padding: 8px 16px;
-                    border-radius: 20px;
-                    font-size: 14px;
-                    border: 1px solid #00ff96;
                 }
                 
                 .landing-info {
@@ -853,37 +837,26 @@ export class LandingPage {
     }
     
     selectRandomImage() {
-        this.currentImageIndex = Math.floor(Math.random() * this.imageCount) + 1;
+        // Pick a random image different from current one
+        let newIndex;
+        do {
+            newIndex = Math.floor(Math.random() * this.imageCount) + 1;
+        } while (newIndex === this.currentImageIndex && this.imageCount > 1);
+        
+        this.currentImageIndex = newIndex;
         this.updateImage();
     }
     
     updateImage() {
         const imageElement = document.getElementById('landing-image');
-        const counterElement = document.getElementById('image-counter');
         
-        if (imageElement && counterElement) {
+        if (imageElement) {
             const imageName = this.currentImageIndex === 1 ? 'landing.png' : `landing${this.currentImageIndex}.png`;
             imageElement.src = `./${imageName}`;
-            counterElement.textContent = `${this.currentImageIndex} / ${this.imageCount}`;
         }
     }
     
-    nextImage() {
-        this.currentImageIndex = (this.currentImageIndex % this.imageCount) + 1;
-        this.updateImage();
-    }
-    
-    prevImage() {
-        this.currentImageIndex = this.currentImageIndex === 1 ? this.imageCount : this.currentImageIndex - 1;
-        this.updateImage();
-    }
-    
-    startImageCycle() {
-        // Auto-cycle through images every 5 seconds
-        setInterval(() => {
-            this.nextImage();
-        }, 5000);
-    }
+    // Remove unused methods: nextImage, prevImage, startImageCycle
     
     showInfoModal() {
         this.infoModalVisible = true;
@@ -922,7 +895,11 @@ export class LandingPage {
             this.startGame();
         });
         
-
+        // 🎲 Dice button - shuffle to random image
+        document.getElementById('random-image')?.addEventListener('click', () => {
+            this.enableAudioOnInteraction(); // Enable audio on any interaction
+            this.selectRandomImage(); // Now shuffles instead of cycling
+        });
         
         // Info button
         document.getElementById('info-button')?.addEventListener('click', () => {

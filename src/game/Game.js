@@ -168,7 +168,7 @@ export class Game {
         // ✅ Clear riding state on restart
         if (this.player) {
             this.player.ridingLog = null;
-            this.player.setPosition(0, 0, 12);
+            this.player.setPosition(0, 0, 17);
         }
         
         // Simple level disposal and reload
@@ -230,7 +230,7 @@ export class Game {
             this.player.ridingLog = null;
             
             // Start position at bottom of screen
-            this.player.setPosition(0, 0, 12);
+            this.player.setPosition(0, 0, 17);
             
             console.log('✅ Player created successfully at:', this.player.position);
         } catch (error) {
@@ -275,7 +275,7 @@ export class Game {
         // Reset player position and clear riding state
         if (this.player) {
             this.player.ridingLog = null;
-            this.player.setPosition(0, 0, 12);
+            this.player.setPosition(0, 0, 17);
         }
         
         // Update UI
@@ -390,10 +390,10 @@ export class Game {
         const obstacles = this.level.getObstacles();
         
         // ✅ UPDATED GAME ZONES for new polished layout
-        const roadZone = playerPos.z >= 1 && playerPos.z <= 11;           // Road area
-        const safeMedianZone = playerPos.z >= -5 && playerPos.z <= 0;     // ✅ Wide safe median (6 units)
-        const waterZone = playerPos.z >= -13 && playerPos.z <= -5;        // ✅ Water area (adjusted for new positions)
-        const startZone = playerPos.z >= 11;                              // Starting grass
+        const roadZone = playerPos.z >= 1 && playerPos.z <= 14;           // Road area
+        const safeMedianZone = playerPos.z >= -5 && playerPos.z <= 3;     // ✅ Wide safe median (6 units)
+        const waterZone = playerPos.z >= -12 && playerPos.z <= -2;        // ✅ Water area (adjusted for new positions)
+        const startZone = playerPos.z >= 14;                              // Starting grass
         const goalZone = playerPos.z <= -13;                              // ✅ GFL goal building area
         
         // Debug output (uncomment to see zones)
@@ -504,7 +504,7 @@ export class Game {
         
         // Reset player position
         if (this.player) {
-            this.player.setPosition(0, 0, 12);
+            this.player.setPosition(0, 0, 17);
         }
         
         if (this.lives <= 0) {

@@ -196,36 +196,36 @@ export class Level {
         console.log('✅ Subtle boundaries created');
     }
     
-    // 1. Full-width grass extending to bottom edge
+    // 1. Adjusted grass - smaller to make room for proper road positioning
     createFullWidthStartingArea() {
-        console.log('🌱 Creating full-width grass extending to bottom...');
+        console.log('🌱 Creating adjusted full-width grass...');
         
-        const grassGeometry = new THREE.PlaneGeometry(this.screenWidth, 6); // Extended height
+        const grassGeometry = new THREE.PlaneGeometry(this.screenWidth, 4); // Reduced from 6 to 4
         const startGrass = new THREE.Mesh(grassGeometry, this.sharedMaterials.grass);
         startGrass.rotation.x = -Math.PI / 2;
-        startGrass.position.set(0, 0, 15); // Moved up to extend to bottom
+        startGrass.position.set(0, 0, 16); // Moved from z=15 to z=16
         startGrass.receiveShadow = true;
         this.terrain.push(startGrass);
         this.scene.add(startGrass);
         
-        console.log('✅ Full-width starting grass created');
+        console.log('✅ Adjusted starting grass created');
     }
     
-    // 4. Full-width road spanning entire screen
+    // 4. Road moved down to proper position
     createFullWidthRoadSection() {
-        console.log('🛣️ Creating full-width road section...');
+        console.log('🛣️ Creating properly positioned full-width road section...');
         
         const roadGeometry = new THREE.PlaneGeometry(this.screenWidth, 10);
         const road = new THREE.Mesh(roadGeometry, this.sharedMaterials.road);
         road.rotation.x = -Math.PI / 2;
-        road.position.set(0, 0, 5);
+        road.position.set(0, 0, 9); // Moved from z=5 to z=9
         road.receiveShadow = true;
         this.terrain.push(road);
         this.scene.add(road);
         
         this.createLaneMarkings();
         
-        console.log('✅ Full-width road section created');
+        console.log('✅ Properly positioned full-width road section created');
     }
     
     createLaneMarkings() {
@@ -233,7 +233,7 @@ export class Level {
         const centerLineGeometry = new THREE.PlaneGeometry(this.screenWidth, 0.15);
         const centerLine = new THREE.Mesh(centerLineGeometry, this.sharedMaterials.yellowLine);
         centerLine.rotation.x = -Math.PI / 2;
-        centerLine.position.set(0, 0.02, 5);
+        centerLine.position.set(0, 0.02, 9); // Updated to match new road position
         this.decorations.push(centerLine);
         this.scene.add(centerLine);
         
@@ -245,7 +245,7 @@ export class Level {
             for (let i = -this.screenWidth/2; i < this.screenWidth/2; i += 3) {
                 const dash = new THREE.Mesh(dashGeometry, this.sharedMaterials.whiteLine);
                 dash.rotation.x = -Math.PI / 2;
-                dash.position.set(i, 0.02, 5 + lane * 2);
+                dash.position.set(i, 0.02, 9 + lane * 2); // Updated to match new road position
                 this.decorations.push(dash);
                 this.scene.add(dash);
             }
@@ -258,28 +258,28 @@ export class Level {
         const medianGeometry = new THREE.PlaneGeometry(this.screenWidth, 6);
         const medianSidewalk = new THREE.Mesh(medianGeometry, this.sharedMaterials.sidewalk);
         medianSidewalk.rotation.x = -Math.PI / 2;
-        medianSidewalk.position.set(0, 0.05, -2);
+        medianSidewalk.position.set(0, 0.05, 1); // Moved from z=-2 to z=1 (closer to road)
         medianSidewalk.receiveShadow = true;
         this.terrain.push(medianSidewalk);
         this.scene.add(medianSidewalk);
         
-        console.log('✅ Safe median strip created');
+        console.log('✅ Safe median strip created - moved away from logs');
     }
     
-    // 3. Extended river to full screen width
+    // 3. Extended river to fully cover all log positions
     createFullWidthRiverSection() {
         console.log('🌊 Creating extended full-width river section...');
         
         // Make river even wider than screen width to ensure full coverage
         const extendedRiverWidth = this.screenWidth + 20; // Extra width for seamless edges
-        const riverGeometry = new THREE.PlaneGeometry(extendedRiverWidth, 8);
+        const riverGeometry = new THREE.PlaneGeometry(extendedRiverWidth, 12); // Increased to 12 units
         const river = new THREE.Mesh(riverGeometry, this.sharedMaterials.water);
         river.rotation.x = -Math.PI / 2;
-        river.position.set(0, -0.05, -8);
+        river.position.set(0, -0.05, -8); // Back to z=-8 center
         this.terrain.push(river);
         this.scene.add(river);
         
-        console.log('✅ Extended full-width river section created');
+        console.log('✅ Extended full-width river section created - spans z=-14 to z=-2');
     }
     
     createGoalBuildingArea() {
@@ -627,10 +627,10 @@ export class Level {
     createRoadVehicles() {
         console.log('🚗 Creating road vehicles...');
         
-        const lanePositions = [9, 7, 5, 3, 1];
+        const lanePositions = [13, 11, 9, 7, 5]; // Moved all lanes down by 4 units
         const laneDirections = [1, -1, 1, -1, 1];
         // 2. Make last two rows (closest to river) move faster
-        const laneSpeeds = [1.5, 2.0, 3.5, 4.0, 1.8]; // Increased speeds for lanes at z=5 and z=3
+        const laneSpeeds = [1.5, 2.0, 3.5, 4.0, 1.8]; // Increased speeds for lanes at z=9 and z=7
         
         lanePositions.forEach((z, laneIndex) => {
             const direction = laneDirections[laneIndex];
@@ -662,7 +662,7 @@ export class Level {
             }
         });
         
-        console.log(`✅ ${this.obstacles.length} vehicles created with faster speeds near river`);
+        console.log(`✅ ${this.obstacles.length} vehicles created with proper road positioning`);
     }
     
     createStableRiverLogs() {
@@ -812,13 +812,13 @@ export class Level {
     }
     
     update(deltaTime) {
-        // Update obstacles
+        // Update obstacles with improved reset logic
         this.obstacles.forEach(obstacle => {
             obstacle.update(deltaTime);
             
-            // 3. FIXED: More robust reset logic to prevent disappearing obstacles
-            const resetDistance = this.screenWidth/2 + 15;
-            const spawnDistance = this.screenWidth/2 + 20; // Spawn further out
+            // More conservative reset distances to ensure continuous flow
+            const resetDistance = this.screenWidth/2 + 10;  // Reduced from 15
+            const spawnDistance = this.screenWidth/2 + 15;  // Reduced from 20
             
             if (obstacle.velocity.x > 0 && obstacle.position.x > resetDistance) {
                 // Moving right, reset to left spawn point
@@ -828,12 +828,12 @@ export class Level {
                 obstacle.setPosition(spawnDistance, obstacle.position.y, obstacle.position.z);
             }
             
-            // 3. ADDITIONAL: Force respawn if obstacle gets too far off screen (failsafe)
-            const maxAllowedDistance = this.screenWidth/2 + 30;
-            if (Math.abs(obstacle.position.x) > maxAllowedDistance) {
+            // Emergency failsafe - if anything gets too far, force immediate reset
+            const emergencyDistance = this.screenWidth/2 + 25;
+            if (Math.abs(obstacle.position.x) > emergencyDistance) {
                 const direction = obstacle.velocity.x > 0 ? -1 : 1;
                 obstacle.setPosition(direction * spawnDistance, obstacle.position.y, obstacle.position.z);
-                console.log(`🔄 Respawned ${obstacle.type} that went too far off screen`);
+                console.log(`🚨 Emergency respawn of ${obstacle.type} at distance ${Math.abs(obstacle.position.x)}`);
             }
         });
         
