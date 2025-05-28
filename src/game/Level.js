@@ -325,9 +325,17 @@ export class Level {
         const spacing = 2.5;
         const letterSize = 1.5;
         
+        // Main GFL letters
         this.createLetterG(building, -spacing, 1, 2.1, letterSize, letterMaterial);
         this.createLetterF(building, 0, 1, 2.1, letterSize, letterMaterial);
         this.createLetterL(building, spacing, 1, 2.1, letterSize, letterMaterial);
+        
+        // Add HQ letters below in green area - make Q same size as H
+        const smallLetterSize = 1.2; // Increased from 1.0 for better visibility
+        const hqSpacing = 1.8; // Slightly wider spacing for larger Q
+        
+        this.createLetterH(building, -hqSpacing/2, -1.5, 2.1, smallLetterSize, letterMaterial);
+        this.createLetterQ(building, hqSpacing/2, -1.5, 2.1, smallLetterSize, letterMaterial);
     }
     
     createLetterG(building, x, y, z, size, material) {
@@ -414,32 +422,55 @@ export class Level {
         console.log('✅ Trees moved to GFL building row');
     }
     
-    // 1. City buildings behind GFL building (comprehensive coverage)
+    // 1. City buildings behind GFL building (ultra-comprehensive coverage)
     createBackgroundCityBuildings() {
-        console.log('🏙️ Creating comprehensive background city buildings...');
+        console.log('🏙️ Creating ultra-comprehensive background city buildings...');
         
         const backgroundBuildings = [
-            // First row - complete coverage directly behind GFL building
+            // First row - ultra wall-to-wall coverage
+            { x: -24, z: -22, width: 4, height: 8, depth: 4, material: 'building2' },
+            { x: -20, z: -22, width: 3, height: 9, depth: 4, material: 'building1' },
+            { x: -18, z: -22, width: 3, height: 9, depth: 4, material: 'building1' },
             { x: -15, z: -22, width: 3, height: 11, depth: 4, material: 'building3' },
             { x: -12, z: -22, width: 3, height: 12, depth: 4, material: 'building2' },
-            { x: -8, z: -22, width: 4, height: 15, depth: 4, material: 'building1' },
-            { x: -3, z: -22, width: 4, height: 18, depth: 4, material: 'building2' },
-            { x: 3, z: -22, width: 4, height: 16, depth: 4, material: 'building3' },
-            { x: 8, z: -22, width: 4, height: 14, depth: 4, material: 'building1' },
+            { x: -9, z: -22, width: 3, height: 14, depth: 4, material: 'building1' },
+            { x: -6, z: -22, width: 3, height: 16, depth: 4, material: 'building3' },
+            { x: -3, z: -22, width: 3, height: 18, depth: 4, material: 'building2' },
+            { x: 0, z: -22, width: 3, height: 17, depth: 4, material: 'building1' },
+            { x: 3, z: -22, width: 3, height: 16, depth: 4, material: 'building3' },
+            { x: 6, z: -22, width: 3, height: 15, depth: 4, material: 'building2' },
+            { x: 9, z: -22, width: 3, height: 14, depth: 4, material: 'building1' },
             { x: 12, z: -22, width: 3, height: 13, depth: 4, material: 'building3' },
             { x: 15, z: -22, width: 3, height: 10, depth: 4, material: 'building2' },
+            { x: 18, z: -22, width: 3, height: 8, depth: 4, material: 'building1' },
+            { x: 20, z: -22, width: 3, height: 9, depth: 4, material: 'building3' },
+            { x: 24, z: -22, width: 4, height: 7, depth: 4, material: 'building2' },
             
             // Second row - extended coverage
-            { x: -12, z: -28, width: 5, height: 17, depth: 5, material: 'building1' },
-            { x: -6, z: -28, width: 5, height: 20, depth: 5, material: 'building2' },
+            { x: -20, z: -28, width: 5, height: 13, depth: 5, material: 'building1' },
+            { x: -15, z: -28, width: 5, height: 15, depth: 5, material: 'building3' },
+            { x: -10, z: -28, width: 5, height: 18, depth: 5, material: 'building2' },
+            { x: -5, z: -28, width: 5, height: 20, depth: 5, material: 'building1' },
             { x: 0, z: -28, width: 5, height: 22, depth: 5, material: 'building3' },
-            { x: 6, z: -28, width: 5, height: 19, depth: 5, material: 'building1' },
-            { x: 12, z: -28, width: 5, height: 16, depth: 5, material: 'building2' },
+            { x: 5, z: -28, width: 5, height: 19, depth: 5, material: 'building2' },
+            { x: 10, z: -28, width: 5, height: 17, depth: 5, material: 'building1' },
+            { x: 15, z: -28, width: 5, height: 14, depth: 5, material: 'building3' },
+            { x: 20, z: -28, width: 5, height: 12, depth: 5, material: 'building2' },
             
             // Third row for complete city depth
-            { x: -8, z: -35, width: 6, height: 25, depth: 6, material: 'building3' },
-            { x: 0, z: -35, width: 6, height: 28, depth: 6, material: 'building1' },
-            { x: 8, z: -35, width: 6, height: 23, depth: 6, material: 'building2' }
+            { x: -18, z: -35, width: 6, height: 21, depth: 6, material: 'building3' },
+            { x: -12, z: -35, width: 6, height: 23, depth: 6, material: 'building2' },
+            { x: -6, z: -35, width: 6, height: 26, depth: 6, material: 'building1' },
+            { x: 0, z: -35, width: 6, height: 28, depth: 6, material: 'building3' },
+            { x: 6, z: -35, width: 6, height: 25, depth: 6, material: 'building2' },
+            { x: 12, z: -35, width: 6, height: 21, depth: 6, material: 'building1' },
+            { x: 18, z: -35, width: 6, height: 19, depth: 6, material: 'building3' },
+            
+            // Fourth row - far background for complete coverage
+            { x: -15, z: -42, width: 8, height: 30, depth: 8, material: 'building1' },
+            { x: -5, z: -42, width: 8, height: 32, depth: 8, material: 'building2' },
+            { x: 5, z: -42, width: 8, height: 31, depth: 8, material: 'building3' },
+            { x: 15, z: -42, width: 8, height: 29, depth: 8, material: 'building1' }
         ];
         
         backgroundBuildings.forEach(building => {
@@ -455,7 +486,7 @@ export class Level {
             this.scene.add(buildingMesh);
         });
         
-        console.log('✅ Comprehensive background city buildings created - no gaps');
+        console.log('✅ Ultra-comprehensive background city buildings created - complete coverage');
     }
     
     // 2. Trees on bottom grass section sides
@@ -598,7 +629,8 @@ export class Level {
         
         const lanePositions = [9, 7, 5, 3, 1];
         const laneDirections = [1, -1, 1, -1, 1];
-        const laneSpeeds = [1.5, 2.0, 1.2, 2.5, 1.8];
+        // 2. Make last two rows (closest to river) move faster
+        const laneSpeeds = [1.5, 2.0, 3.5, 4.0, 1.8]; // Increased speeds for lanes at z=5 and z=3
         
         lanePositions.forEach((z, laneIndex) => {
             const direction = laneDirections[laneIndex];
@@ -630,7 +662,7 @@ export class Level {
             }
         });
         
-        console.log(`✅ ${this.obstacles.length} vehicles created`);
+        console.log(`✅ ${this.obstacles.length} vehicles created with faster speeds near river`);
     }
     
     createStableRiverLogs() {
@@ -638,7 +670,8 @@ export class Level {
         
         const riverLanes = [-12, -10, -8, -6, -4];
         const laneDirections = [-1, 1, -1, 1, -1];
-        const laneSpeeds = [1.0, 0.8, 1.2, 0.9, 1.1];
+        // 1. Make first two rows (closest to GFL building) move faster
+        const laneSpeeds = [2.5, 2.2, 1.2, 0.9, 1.1]; // Increased speeds for z=-12 and z=-10
         
         riverLanes.forEach((z, laneIndex) => {
             const direction = laneDirections[laneIndex];
@@ -663,7 +696,7 @@ export class Level {
             }
         });
         
-        console.log('✅ Stable logs created');
+        console.log('✅ Stable logs created with faster speeds near GFL building');
     }
     
     // 5. Enhanced corner buildings to fill blue gaps
@@ -725,17 +758,82 @@ export class Level {
         }
     }
     
+    createLetterH(building, x, y, z, size, material) {
+        // H - Left vertical bar
+        const hLeft = new THREE.BoxGeometry(0.25, size * 1.2, 0.2);
+        const hLeftMesh = new THREE.Mesh(hLeft, material);
+        hLeftMesh.position.set(x - size/3, y, z);
+        building.add(hLeftMesh);
+        
+        // H - Right vertical bar
+        const hRight = new THREE.BoxGeometry(0.25, size * 1.2, 0.2);
+        const hRightMesh = new THREE.Mesh(hRight, material);
+        hRightMesh.position.set(x + size/3, y, z);
+        building.add(hRightMesh);
+        
+        // H - Middle horizontal bar
+        const hMiddle = new THREE.BoxGeometry(size * 0.8, 0.25, 0.2);
+        const hMiddleMesh = new THREE.Mesh(hMiddle, material);
+        hMiddleMesh.position.set(x, y, z);
+        building.add(hMiddleMesh);
+    }
+    
+    createLetterQ(building, x, y, z, size, material) {
+        // Q - Outer circle with thicker segments for better visibility
+        const segments = 20; // More segments for smoother circle
+        const thickness = 0.25; // Thicker segments
+        
+        for (let i = 0; i < segments; i++) {
+            const angle = (i / segments) * Math.PI * 2;
+            const nextAngle = ((i + 1) / segments) * Math.PI * 2;
+            
+            const radius = size * 0.45; // Slightly larger radius
+            const x1 = Math.cos(angle) * radius;
+            const y1 = Math.sin(angle) * radius;
+            const x2 = Math.cos(nextAngle) * radius;
+            const y2 = Math.sin(nextAngle) * radius;
+            
+            const segmentLength = Math.sqrt((x2-x1)**2 + (y2-y1)**2);
+            const segmentAngle = Math.atan2(y2-y1, x2-x1);
+            
+            const segment = new THREE.BoxGeometry(segmentLength, thickness, 0.2);
+            const segmentMesh = new THREE.Mesh(segment, material);
+            segmentMesh.position.set(x + (x1+x2)/2, y + (y1+y2)/2, z);
+            segmentMesh.rotation.z = segmentAngle;
+            building.add(segmentMesh);
+        }
+        
+        // Q - Tail (larger diagonal line)
+        const qTail = new THREE.BoxGeometry(size * 0.4, thickness, 0.2); // Longer tail
+        const qTailMesh = new THREE.Mesh(qTail, material);
+        qTailMesh.position.set(x + size * 0.25, y - size * 0.25, z);
+        qTailMesh.rotation.z = -Math.PI / 4; // 45 degree angle
+        building.add(qTailMesh);
+    }
+    
     update(deltaTime) {
         // Update obstacles
         this.obstacles.forEach(obstacle => {
             obstacle.update(deltaTime);
             
+            // 3. FIXED: More robust reset logic to prevent disappearing obstacles
             const resetDistance = this.screenWidth/2 + 15;
+            const spawnDistance = this.screenWidth/2 + 20; // Spawn further out
             
             if (obstacle.velocity.x > 0 && obstacle.position.x > resetDistance) {
-                obstacle.setPosition(-resetDistance, obstacle.position.y, obstacle.position.z);
+                // Moving right, reset to left spawn point
+                obstacle.setPosition(-spawnDistance, obstacle.position.y, obstacle.position.z);
             } else if (obstacle.velocity.x < 0 && obstacle.position.x < -resetDistance) {
-                obstacle.setPosition(resetDistance, obstacle.position.y, obstacle.position.z);
+                // Moving left, reset to right spawn point  
+                obstacle.setPosition(spawnDistance, obstacle.position.y, obstacle.position.z);
+            }
+            
+            // 3. ADDITIONAL: Force respawn if obstacle gets too far off screen (failsafe)
+            const maxAllowedDistance = this.screenWidth/2 + 30;
+            if (Math.abs(obstacle.position.x) > maxAllowedDistance) {
+                const direction = obstacle.velocity.x > 0 ? -1 : 1;
+                obstacle.setPosition(direction * spawnDistance, obstacle.position.y, obstacle.position.z);
+                console.log(`🔄 Respawned ${obstacle.type} that went too far off screen`);
             }
         });
         

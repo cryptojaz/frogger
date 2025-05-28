@@ -21,10 +21,10 @@ export class AudioManager {
             // Just load the audio files for now
             await this.loadMusic('background', './audio/FeelingFroggish.mp3');
             
-            // Load sound effects
-            await this.loadSFX('jump', './public/audio/jump.mp3');
-            await this.loadSFX('lose', './public/audio/lose.mp3');
-            await this.loadSFX('levelfinish', './public/audio/levelfinish.mp3');
+            // 🔧 FIXED: Remove './public/' prefix - should match music path pattern
+            await this.loadSFX('jump', './audio/jump.mp3');
+            await this.loadSFX('lose', './audio/lose.mp3');
+            await this.loadSFX('levelfinish', './audio/levelfinish.mp3');
             
             this.isInitialized = true;
             console.log('🎵 Audio system initialized (waiting for user interaction)');
@@ -68,6 +68,7 @@ export class AudioManager {
             return new Promise((resolve, reject) => {
                 audio.addEventListener('canplaythrough', () => {
                     this.sounds[name] = audio;
+                    console.log(`🎵 Music loaded: ${name}`);
                     resolve(audio);
                 });
                 
@@ -91,8 +92,22 @@ export class AudioManager {
             audio.volume = this.sfxVolume;
             audio.preload = 'auto';
             
-            this.sounds[name] = audio;
-            console.log(`🎵 SFX loaded: ${name}`);
+            // 🔧 ENHANCED: Add proper loading promise like music
+            return new Promise((resolve, reject) => {
+                audio.addEventListener('canplaythrough', () => {
+                    this.sounds[name] = audio;
+                    console.log(`🎵 SFX loaded: ${name}`);
+                    resolve(audio);
+                });
+                
+                audio.addEventListener('error', (e) => {
+                    console.warn(`Failed to load SFX: ${url}`, e);
+                    reject(e);
+                });
+                
+                // Start loading
+                audio.load();
+            });
             
         } catch (error) {
             console.warn(`Failed to load SFX ${name}:`, error);
@@ -154,12 +169,15 @@ export class AudioManager {
     }
     
     playSFX(name) {
-        if (!this.isInitialized || this.isMuted || !this.sounds[name]) return;
+        if (!this.isInitialized || this.isMuted || !this.sounds[name]) {
+            console.warn(`🎵 Cannot play SFX '${name}': ${!this.isInitialized ? 'not initialized' : this.isMuted ? 'muted' : 'sound not found'}`);
+            return;
+        }
         
         try {
             const sfx = this.sounds[name].cloneNode();
             sfx.volume = this.sfxVolume;
-            sfx.play().catch(e => console.warn('SFX play failed:', e));
+            sfx.play().catch(e => console.warn(`SFX '${name}' play failed:`, e));
         } catch (error) {
             console.warn(`Failed to play SFX ${name}:`, error);
         }
@@ -231,7 +249,8 @@ export class AudioManager {
             musicVolume: this.musicVolume,
             sfxVolume: this.sfxVolume,
             currentTrack: this.currentMusic ? 'FeelingFroggish' : null,
-            isInitialized: this.isInitialized
+            isInitialized: this.isInitialized,
+            loadedSounds: Object.keys(this.sounds) // 🔧 ADDED: Debug info
         };
     }
     
