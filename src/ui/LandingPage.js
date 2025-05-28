@@ -786,10 +786,11 @@ export class LandingPage {
             const { AudioManager } = await import('../audio/AudioManager.js');
             this.audioManager = new AudioManager();
             
-            // Wait a bit for audio to initialize, then start music
+            // 🎵 UPDATED: Play PatriotFrog.mp3 on landing page
             setTimeout(() => {
                 if (this.audioManager.isInitialized) {
-                    this.audioManager.playMusic('background');
+                    console.log('🎵 Starting PatriotFrog music on landing page');
+                    this.audioManager.playMusic('landing'); // ✅ Play landing music instead of background
                     this.updateAudioButton();
                 }
             }, 1000);
@@ -823,10 +824,11 @@ export class LandingPage {
             
             // Enable audio context first
             this.audioManager.enableAudioContext().then(() => {
-                // Then try to play music after context is ready
+                // 🎵 UPDATED: Play PatriotFrog instead of background music
                 setTimeout(() => {
                     if (!this.audioManager.isMuted && this.audioManager.userInteracted) {
-                        this.audioManager.playMusic('background');
+                        console.log('🎵 Playing PatriotFrog after user interaction');
+                        this.audioManager.playMusic('landing'); // ✅ Play landing music
                     }
                     this.updateAudioButton();
                 }, 300);
@@ -855,8 +857,6 @@ export class LandingPage {
             imageElement.src = `./${imageName}`;
         }
     }
-    
-    // Remove unused methods: nextImage, prevImage, startImageCycle
     
     showInfoModal() {
         this.infoModalVisible = true;
@@ -932,10 +932,11 @@ export class LandingPage {
                 this.audioManager.toggleMute();
                 this.updateAudioButton();
                 
-                // If unmuting, try to play music
+                // 🎵 UPDATED: If unmuting, play PatriotFrog instead of background
                 if (!this.audioManager.isMuted) {
                     setTimeout(() => {
-                        this.audioManager.playMusic('background');
+                        console.log('🎵 Resuming PatriotFrog after unmute');
+                        this.audioManager.playMusic('landing'); // ✅ Play landing music
                     }, 100);
                 }
             }
@@ -952,9 +953,11 @@ export class LandingPage {
     startGame() {
         this.isVisible = false;
         
-        // Fade out music smoothly
+        // 🎵 UPDATED: Smooth transition from PatriotFrog to FeelingFroggish
+        console.log('🎵 Transitioning from PatriotFrog to FeelingFroggish...');
         if (this.audioManager) {
-            this.audioManager.fadeMusic(0, 500);
+            // Use the new switchMusic method for smooth transition
+            this.audioManager.switchMusic('background', 800, 300); // Fade out over 800ms, wait 300ms, then fade in
         }
         
         const landingElement = document.getElementById('landing-page');

@@ -1,5 +1,60 @@
 import * as THREE from 'three';
 
+// ===== EASY CONFIGURATION SECTION =====
+// Adjust these values to fix issues quickly
+const CONFIG = {
+    // HEIGHT SETTINGS
+    roadVehicleHeight: 5.0,        // How high above ground (0-10 range)
+    
+    // VEHICLE DIMENSIONS (width x height in world units)
+    vehicleSizes: {
+        cybertruck: { width: 4.0, height: 2.0 },   // Good reference size
+        taxi: { width: 4.0, height: 2.0 },         // FIXED: was squished, now same as cybertruck
+        sportscar: { width: 4.0, height: 2.0 },   // FIXED: was squished, now same as cybertruck
+    },
+    
+    // ROTATION FIXES
+    rotation: {
+        baseX: -Math.PI / 2,           
+        baseY: 0,                      
+        baseZ: Math.PI,                      
+        
+        facingRightZ: -Math.PI,      // Keep this - flips right-moving cars  
+        facingLeftZ: -Math.PI,             // CHANGE THIS - no flip for left-moving cars
+    },
+    
+    // MOVEMENT DIRECTION FIX
+    movement: {
+        invertDirection: false,         // FLIP THIS if cars move opposite to facing direction
+    },
+    
+    // LANE POSITIONING (to avoid sidewalks)
+    lanes: {
+        roadStartZ: -15,               // Where road starts (negative Z)
+        roadEndZ: 15,                  // Where road ends (positive Z)  
+        laneWidth: 3,                  // Width of each lane
+        numLanes: 5,                   // Total number of lanes
+    }
+};
+
+
+// ===== RECOMMENDED VALUES TO TRY =====
+/*
+If cars are UPSIDE DOWN, try:
+CONFIG.rotation.baseX = Math.PI / 2;  (instead of -Math.PI / 2)
+
+If cars move WRONG DIRECTION, try:
+CONFIG.movement.invertDirection = false;  (instead of true)
+
+If cars are SQUISHED, adjust:
+CONFIG.vehicleSizes.taxi.width = 5.0;     (make wider)
+CONFIG.vehicleSizes.sportscar.width = 5.0;
+
+If cars are on SIDEWALK, adjust:
+CONFIG.lanes.roadStartZ = -12;            (narrow the road)
+CONFIG.lanes.roadEndZ = 12;
+*/
+
 // Base class for all moving obstacles
 export class Vehicle {
     constructor(scene, type = 'car') {
@@ -9,63 +64,50 @@ export class Vehicle {
         this.position = new THREE.Vector3();
         this.velocity = new THREE.Vector3();
         this.speed = 1;
-        this.isRideable = false; // Key property for logs/turtles vs cars/crocodiles
+        this.isRideable = false;
+        this.movingRight = true;
         
         console.log(`🚗 Creating ${type} vehicle`);
     }
     
-    // CORRECT ASPECT RATIOS based on your actual PNG dimensions
-    static getGeometryForType(vehicleType) {
-        // Calculate correct aspect ratios from your PNG dimensions
-        const dimensions = {
-            cybertruck: { width: 1259, height: 568 },  // Wide rectangle
-            taxi: { width: 1024, height: 1536 },       // Tall rectangle  
-            sportscar: { width: 1024, height: 1536 }   // Sports car instead of bus
-        };
-        
-        const dim = dimensions[vehicleType];
-        if (!dim) return new THREE.PlaneGeometry(3.0, 2.0); // Fallback
-        
-        // Calculate aspect ratio
-        const aspectRatio = dim.width / dim.height;
-        
-        // Set base size and maintain aspect ratio
-        let width, height;
-        
-        if (aspectRatio > 1) {
-            // Wide image (like cybertruck)
-            width = 4.0;  // Make it big enough to see
-            height = width / aspectRatio;
-        } else {
-            // Tall image (like taxi/sportscar)
-            height = 4.0;  // Make it big enough to see
-            width = height * aspectRatio;
+    // Get proper geometry sizes for each vehicle type
+    static getVehicleSize(vehicleType) {
+        // Use CONFIG sizes for road vehicles
+        if (CONFIG.vehicleSizes[vehicleType]) {
+            return CONFIG.vehicleSizes[vehicleType];
         }
         
-        console.log(`📐 ${vehicleType}: ${dim.width}x${dim.height} → ${width.toFixed(1)}x${height.toFixed(1)} (aspect: ${aspectRatio.toFixed(2)})`);
+        // Default sizes for water objects
+        const defaultSizes = {
+            log: { radius: 0.6, length: 6.0 },
+            lilypad: { radius: 2.5 },
+            turtle: { width: 2.0, height: 1.5 },
+            crocodile: { width: 4.0, height: 1.0 }
+        };
         
-        return new THREE.PlaneGeometry(width, height);
+        return defaultSizes[vehicleType] || { width: 3.0, height: 2.0 };
     }
     
-    // Load textures
+    // Load textures properly
     static getTexture(vehicleType) {
-        // ✅ NEVER CACHE - Always create fresh textures
         const textureLoader = new THREE.TextureLoader();
         const filename = `${vehicleType}.png`;
         
-        console.log(`🖼️ Creating FRESH texture for ${vehicleType}`);
+        console.log(`🖼️ Loading texture for ${vehicleType}`);
         
         const texture = textureLoader.load(
             filename,
-            (texture) => {
-                console.log(`✅ Fresh ${vehicleType} texture loaded`);
-                texture.wrapS = THREE.ClampToEdgeWrapping;
-                texture.wrapT = THREE.ClampToEdgeWrapping;
-                texture.flipY = false;
+            (loadedTexture) => {
+                console.log(`✅ ${vehicleType} texture loaded successfully`);
+                loadedTexture.wrapS = THREE.ClampToEdgeWrapping;
+                loadedTexture.wrapT = THREE.ClampToEdgeWrapping;
+                loadedTexture.minFilter = THREE.LinearFilter;
+                loadedTexture.magFilter = THREE.LinearFilter;
+                loadedTexture.flipY = false;
             },
             undefined,
             (error) => {
-                console.error(`❌ Failed to load ${vehicleType}:`, error);
+                console.error(`❌ Failed to load ${vehicleType} texture:`, error);
             }
         );
         
@@ -74,10 +116,9 @@ export class Vehicle {
     
     create() {
         if (['cybertruck', 'taxi', 'sportscar'].includes(this.type)) {
-            this.createCorrectAspectPNG();
+            this.createRoadVehicle();
         } else {
-            // River objects - logs, turtles, crocodiles
-            this.createRiverObject();
+            this.createWaterObject();
         }
         
         if (this.mesh) {
@@ -85,184 +126,205 @@ export class Vehicle {
         }
     }
     
-    createCorrectAspectPNG() {
-        console.log(`🎨 Creating PNG vehicle with correct aspect ratio: ${this.type}`);
+    createRoadVehicle() {
+        console.log(`🛣️ Creating road vehicle: ${this.type}`);
         
+        const size = Vehicle.getVehicleSize(this.type);
+        const geometry = new THREE.PlaneGeometry(size.width, size.height);
+        
+        // Try to load PNG texture
         const texture = Vehicle.getTexture(this.type);
         
-        if (texture) {
-            // PERFECT MATERIAL - No distortion
-            const material = new THREE.MeshBasicMaterial({
-                map: texture,
-                transparent: true,
-                alphaTest: 0.1,
-                side: THREE.DoubleSide
-            });
-            
-            // CORRECT GEOMETRY - Matches PNG aspect ratio
-            const geometry = Vehicle.getGeometryForType(this.type);
-            this.mesh = new THREE.Mesh(geometry, material);
-            
-            // SIMPLE ROTATION - lay flat
-            this.mesh.rotation.x = -Math.PI / 2;
-            
-            // ALL VEHICLES AT SAME HEIGHT - No vertical separation needed
-            this.mesh.position.y = 0.25;
-            
-            // Special rotation for cybertruck only
-            if (this.type === 'cybertruck') {
-                this.mesh.rotation.z = Math.PI / 2;
-            }
-            
-            // NO SHADOWS - Keep PNG clean
-            this.mesh.castShadow = false;
-            this.mesh.receiveShadow = false;
-            
-            console.log(`✅ ${this.type} created with correct aspect ratio at height ${this.mesh.position.y}`);
-        } else {
-            console.log(`🔧 Creating colored fallback for ${this.type}`);
-            this.createColoredFallback();
-        }
-    }
-    
-    createColoredFallback() {
-        const colors = {
-            cybertruck: 0x888888,
-            taxi: 0xFFD700,
-            sportscar: 0xff0000  // Red sports car
-        };
-        
         const material = new THREE.MeshBasicMaterial({
-            color: colors[this.type] || 0x666666
+            map: texture,
+            transparent: true,
+            alphaTest: 0.1,
+            side: THREE.DoubleSide
         });
         
-        const geometry = Vehicle.getGeometryForType(this.type);
-        this.mesh = new THREE.Mesh(geometry, material);
-        this.mesh.rotation.x = -Math.PI / 2;
-        this.mesh.position.y = 0.25;
+        // Fallback colors if texture fails
+        material.color = new THREE.Color(this.getVehicleColor());
         
-        if (this.type === 'cybertruck') {
-            this.mesh.rotation.z = Math.PI / 2;
-        }
+        this.mesh = new THREE.Mesh(geometry, material);
+        
+        // APPLY CONFIGURABLE ROTATION
+        this.mesh.rotation.x = CONFIG.rotation.baseX;
+        this.mesh.rotation.y = CONFIG.rotation.baseY;
+        this.mesh.rotation.z = CONFIG.rotation.baseZ;
+        
+        // SET CONFIGURABLE HEIGHT
+        this.mesh.position.y = CONFIG.roadVehicleHeight;
+        
+        console.log(`✅ Road vehicle ${this.type} created with size ${size.width}x${size.height} at height ${CONFIG.roadVehicleHeight}`);
     }
     
-    createRiverObject() {
+    createWaterObject() {
+        console.log(`🌊 Creating water object: ${this.type}`);
+        
         let geometry, material;
+        const size = Vehicle.getVehicleSize(this.type);
         
         switch (this.type) {
-
             case 'log':
-                // Make logs even more rideable
-                geometry = new THREE.CylinderGeometry(0.6, 0.6, 7, 12); // Even wider and longer
+                geometry = new THREE.CylinderGeometry(size.radius, size.radius, size.length, 12);
                 material = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
                 this.mesh = new THREE.Mesh(geometry, material);
-                
                 this.mesh.rotation.z = Math.PI / 2;
-                this.mesh.rotation.x = 0;
-                this.mesh.rotation.y = 0;
-                
                 this.isRideable = true;
-                
-                // Add invisible collision box for easier riding
-                const collisionGeometry = new THREE.BoxGeometry(8, 1, 2); // Larger collision area
-                const collisionMaterial = new THREE.MeshBasicMaterial({ 
-                    transparent: true, 
-                    opacity: 0,
-                    visible: false // Invisible helper
-                });
-                const collisionBox = new THREE.Mesh(collisionGeometry, collisionMaterial);
-                this.mesh.add(collisionBox);
-                
-                console.log(`🪵 Enhanced log with larger collision area created`);
                 break;
                 
-
+            case 'lilypad':
+                geometry = new THREE.CylinderGeometry(size.radius, size.radius, 0.3, 16);
+                material = new THREE.MeshBasicMaterial({ 
+                    color: 0x00FF00,
+                    transparent: false
+                });
+                this.mesh = new THREE.Mesh(geometry, material);
+                this.mesh.position.y = 0.2;
+                this.isRideable = true;
+                
+                const centerGeometry = new THREE.CylinderGeometry(0.8, 0.8, 0.4, 8);
+                const centerMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFF00 });
+                const center = new THREE.Mesh(centerGeometry, centerMaterial);
+                center.position.y = 0.2;
+                this.mesh.add(center);
+                break;
+                
+            case 'turtle':
+                geometry = new THREE.BoxGeometry(size.width, 0.8, size.height);
+                material = new THREE.MeshLambertMaterial({ color: 0x006400 });
+                this.mesh = new THREE.Mesh(geometry, material);
+                this.isRideable = true;
+                break;
+                
+            case 'crocodile':
+                geometry = new THREE.BoxGeometry(size.width, 0.6, size.height);
+                material = new THREE.MeshLambertMaterial({ color: 0x556B2F });
+                this.mesh = new THREE.Mesh(geometry, material);
+                this.isRideable = false;
+                break;
         }
         
         if (this.mesh) {
+            this.mesh.position.y = 0.0;
             this.mesh.castShadow = true;
             this.mesh.receiveShadow = true;
-            
-            if (this.isRideable) {
-                console.log(`🪵 Created RIDEABLE ${this.type} - frog can hop on this!`);
+        }
+    }
+    
+    getVehicleColor() {
+        const colors = {
+            cybertruck: 0xC0C0C0,
+            taxi: 0xFFD700,
+            sportscar: 0xFF4500
+        };
+        return colors[this.type] || 0x666666;
+    }
+    
+    // Set position with lane constraints
+    setPosition(x, y, z) {
+        // CONSTRAIN TO ROAD LANES (avoid sidewalks)
+        if (['cybertruck', 'taxi', 'sportscar'].includes(this.type)) {
+            // Clamp Z position to stay on road
+            z = Math.max(CONFIG.lanes.roadStartZ, Math.min(CONFIG.lanes.roadEndZ, z));
+        }
+        
+        this.position.set(x, y, z);
+        if (this.mesh) {
+            if (['cybertruck', 'taxi', 'sportscar'].includes(this.type)) {
+                this.mesh.position.set(x, CONFIG.roadVehicleHeight, z);
             } else {
-                console.log(`🐊 Created DANGEROUS ${this.type} - frog should avoid this!`);
+                this.mesh.position.copy(this.position);
             }
         }
     }
     
-    // Check if player can ride this object
-    canPlayerRide() {
-        return this.isRideable || false;
+    setVelocity(vx, vy, vz) {
+        // APPLY MOVEMENT DIRECTION FIX
+        if (CONFIG.movement.invertDirection && ['cybertruck', 'taxi', 'sportscar'].includes(this.type)) {
+            vx = -vx; // Invert X velocity if needed
+        }
+        
+        this.velocity.set(vx, vy, vz);
+        this.speed = this.velocity.length();
+        this.movingRight = vx > 0;
+        
+        console.log(`🎯 ${this.type} velocity: (${vx}, ${vy}, ${vz}) - Moving right: ${this.movingRight}`);
+        
+        this.updateRotationBasedOnMovement();
     }
     
-    // Get the height the player should be at when riding
+// In Vehicle.js, replace the updateRotationBasedOnMovement() method with this:
+
+updateRotationBasedOnMovement() {
+    if (!this.mesh || this.velocity.length() === 0) return;
+    
+    if (['cybertruck', 'taxi', 'sportscar'].includes(this.type)) {
+        // APPLY CONFIGURABLE ROTATION
+        this.mesh.rotation.x = CONFIG.rotation.baseX;
+        this.mesh.rotation.y = CONFIG.rotation.baseY;
+        
+        if (this.movingRight) {
+            // Cars moving right: normal orientation
+            this.mesh.rotation.z = CONFIG.rotation.facingRightZ;
+            this.mesh.scale.x = Math.abs(this.mesh.scale.x); // Ensure positive scale
+        } else {
+            // Cars moving left: flip horizontally so they face left
+            this.mesh.rotation.z = CONFIG.rotation.facingLeftZ;
+            this.mesh.scale.x = -Math.abs(this.mesh.scale.x); // Make scale negative to flip
+        }
+        
+        console.log(`🚗 ${this.type} facing ${this.movingRight ? 'RIGHT →' : 'LEFT ←'} (scale.x: ${this.mesh.scale.x})`);
+        
+    } else if (['log', 'lilypad'].includes(this.type)) {
+        if (this.type === 'log') {
+            this.mesh.rotation.x = 0;
+            this.mesh.rotation.y = 0; 
+            this.mesh.rotation.z = Math.PI / 2;
+        }
+    } else {
+        const angle = Math.atan2(this.velocity.z, this.velocity.x);
+        this.mesh.rotation.y = -angle;
+    }
+}
+    
+    canPlayerRide() {
+        return this.isRideable === true;
+    }
+    
     getRideHeight() {
         if (!this.isRideable) return null;
         
         switch (this.type) {
             case 'log':
-                return this.position.y + 0.6; // Top of log
+                return this.position.y + 0.8;
+            case 'lilypad':
+                return this.position.y + 0.2;
             case 'turtle':
-                return this.position.y + 0.4; // Top of turtle shell
+                return this.position.y + 0.5;
             default:
                 return this.position.y + 0.3;
         }
     }
     
-    setPosition(x, y, z) {
-        this.position.set(x, y, z);
-        if (this.mesh) {
-            this.mesh.position.copy(this.position);
-        }
-    }
-    
-    setVelocity(vx, vy, vz) {
-        this.velocity.set(vx, vy, vz);
-        this.speed = this.velocity.length();
-        
-        // Rotate vehicles to face movement direction
-        if (this.mesh && this.velocity.length() > 0) {
-            const direction = this.velocity.clone().normalize();
-            
-            if (['cybertruck', 'taxi', 'sportscar'].includes(this.type)) {
-                const angle = Math.atan2(direction.x, direction.z);
-                
-                if (this.type === 'cybertruck') {
-                    this.mesh.rotation.z = Math.PI / 2 + angle;
-                } else {
-                    // Add 180 degrees (Math.PI) to flip taxi and sportscar around
-                    this.mesh.rotation.z = angle + Math.PI;
-                }
-            } else {
-                // River objects - handle each type differently
-                if (this.type === 'log') {
-                    // LOGS STAY PARALLEL TO ROAD - never rotate based on movement
-                    this.mesh.rotation.z = Math.PI / 2; // Always horizontal
-                    this.mesh.rotation.x = 0;
-                    this.mesh.rotation.y = 0;
-                    console.log(`🪵 Log stays parallel to road regardless of movement direction`);
-                } else {
-                    // Turtles and crocodiles face their movement direction
-                    const angle = Math.atan2(direction.z, direction.x);
-                    this.mesh.rotation.y = -angle + Math.PI / 2;
-                }
-            }
-        }
-    }
-    
     update(deltaTime) {
-        // Update position
         this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
         
         if (this.mesh) {
-            this.mesh.position.copy(this.position);
-            
-            // Add gentle bobbing for river objects
-            if (['log', 'turtle', 'crocodile'].includes(this.type)) {
+            if (['cybertruck', 'taxi', 'sportscar'].includes(this.type)) {
+                // MAINTAIN ROAD CONSTRAINTS AND HEIGHT
+                let constrainedZ = Math.max(CONFIG.lanes.roadStartZ, Math.min(CONFIG.lanes.roadEndZ, this.position.z));
+                this.mesh.position.x = this.position.x;
+                this.mesh.position.y = CONFIG.roadVehicleHeight;
+                this.mesh.position.z = constrainedZ;
+            } else {
+                this.mesh.position.copy(this.position);
+                
+                // Water bobbing
                 const time = Date.now() * 0.001;
                 const offset = this.position.x * 0.1;
-                this.mesh.position.y = this.position.y + Math.sin(time * 2 + offset) * 0.02;
+                const bobAmount = this.type === 'lilypad' ? 0.01 : 0.02;
+                this.mesh.position.y = this.position.y + Math.sin(time * 2 + offset) * bobAmount;
             }
         }
     }
@@ -279,32 +341,22 @@ export class Vehicle {
     dispose() {
         if (this.mesh) {
             this.scene.remove(this.mesh);
-            if (this.mesh.material) this.mesh.material.dispose();
+            if (this.mesh.material) {
+                if (this.mesh.material.map) this.mesh.material.map.dispose();
+                this.mesh.material.dispose();
+            }
             if (this.mesh.geometry) this.mesh.geometry.dispose();
             this.mesh = null;
         }
     }
-    
-    static disposeAll() {
-        if (Vehicle._textures) {
-            Object.values(Vehicle._textures).forEach(texture => {
-                if (texture) texture.dispose();
-            });
-            Vehicle._textures = null;
-        }
-        console.log('🧹 All vehicle resources cleaned up');
-    }
 }
 
-// FIXED: No more overlapping vehicles - each creates specific type
+// VEHICLE CLASSES
 export class Car extends Vehicle {
     constructor(scene) {
-        // Random selection to prevent patterns - now uses sportscar instead of bus
         const types = ['cybertruck', 'taxi', 'sportscar'];
         const selectedType = types[Math.floor(Math.random() * types.length)];
-        
         super(scene, selectedType);
-        console.log(`🎲 Random vehicle: ${selectedType}`);
     }
 }
 
@@ -328,13 +380,20 @@ export class Sportscar extends Vehicle {
 
 export class Bus extends Vehicle {
     constructor(scene) {
-        super(scene, 'sportscar'); // Use sportscar instead of bus
+        super(scene, 'sportscar');
     }
 }
 
+// WATER OBJECTS
 export class Log extends Vehicle {
     constructor(scene) {
         super(scene, 'log');
+    }
+}
+
+export class LilyPad extends Vehicle {
+    constructor(scene) {
+        super(scene, 'lilypad');
     }
 }
 

@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@vercel/analytics": "^1.5.0",
     "terser": "^5.39.2",
     "three": "^0.162.0"
   },

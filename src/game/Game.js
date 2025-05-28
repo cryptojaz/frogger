@@ -20,6 +20,11 @@ export class Game {
         this.currentLevel = 1;
         this.maxLevel = 5; // We have 5 levels planned
         
+        // ✅ NEW: Classic Frogger multi-frog system
+        this.frogsRescued = 0; // Current frogs rescued in this level
+        this.totalFrogsNeeded = 4; // Need 4 frogs to complete each level
+        this.savedFrogImages = []; // Visual frog indicators
+        
         // Three.js components
         this.scene = null;
         this.camera = null;
@@ -36,7 +41,7 @@ export class Game {
         this.WORLD_WIDTH = 30;
         this.WORLD_DEPTH = 30;
         
-        console.log('🎮 Game manager initialized');
+        console.log('🎮 Game manager initialized with classic Frogger multi-frog system');
     }
     
     async init() {
@@ -153,9 +158,9 @@ export class Game {
         console.log('💡 Lighting setup complete');
     }
     
-    // ✅ SIMPLE RESTART - No complex WebGL cleanup
+    // ✅ UPDATED RESTART - Reset frog progress
     async restartGame() {
-        console.log('🔄 Simple restart - just reset positions...');
+        console.log('🔄 Simple restart - resetting all frog progress...');
         
         // Reset game state
         this.isPlaying = false;
@@ -165,6 +170,10 @@ export class Game {
         this.lives = 3;
         this.currentLevel = 1;
         
+        // ✅ Reset frog rescue progress
+        this.frogsRescued = 0;
+        this.clearSavedFrogImages();
+        
         // ✅ Clear riding state on restart
         if (this.player) {
             this.player.ridingLog = null;
@@ -173,7 +182,7 @@ export class Game {
         
         // Simple level disposal and reload
         if (this.level) {
-            this.level.dispose(); // Uses new simple dispose
+            this.level.dispose();
             this.level = null;
         }
         
@@ -184,11 +193,12 @@ export class Game {
         this.ui.updateScore(this.score);
         this.ui.updateLives(this.lives);
         this.ui.updateLevel(this.currentLevel);
+        this.ui.updateFrogProgress(this.frogsRescued, this.totalFrogsNeeded);
         this.ui.hideGameOver();
         
         this.startGame();
         
-        console.log('✅ Simple restart complete');
+        console.log('✅ Simple restart complete with frog progress reset');
     }
     
     async loadLevel(levelNumber) {
@@ -209,6 +219,9 @@ export class Game {
             console.log('🔧 Creating level...');
             this.level = new Level(this.scene, levelNumber, this.WORLD_WIDTH, this.WORLD_DEPTH);
             await this.level.create();
+            
+            // ✅ Add saved frog images to the new level
+            await this.addSavedFrogImages();
             
             console.log(`✅ Level ${levelNumber} loaded successfully`);
             
@@ -255,10 +268,12 @@ export class Game {
         this.ui.updateScore(this.score);
         this.ui.updateLives(this.lives);
         this.ui.updateLevel(this.currentLevel);
+        this.ui.updateFrogProgress(this.frogsRescued, this.totalFrogsNeeded);
         
         console.log('🎮 Game started! Rendering should begin...');
     }
     
+    // ✅ UPDATED: Handle level progression with frog system
     async nextLevel() {
         if (this.currentLevel >= this.maxLevel) {
             // Game completed!
@@ -268,6 +283,10 @@ export class Game {
         
         this.currentLevel++;
         this.levelComplete = false;
+        
+        // ✅ Reset frog progress for new level
+        this.frogsRescued = 0;
+        this.clearSavedFrogImages();
         
         // Load next level
         await this.loadLevel(this.currentLevel);
@@ -280,23 +299,23 @@ export class Game {
         
         // Update UI
         this.ui.updateLevel(this.currentLevel);
+        this.ui.updateFrogProgress(this.frogsRescued, this.totalFrogsNeeded);
         this.ui.hideLevelComplete();
         
         this.isPlaying = true;
         
-        console.log(`🆙 Advanced to level ${this.currentLevel}`);
+        console.log(`🆙 Advanced to level ${this.currentLevel} with fresh frog progress`);
     }
     
     // ✅ ENHANCED MOVE PLAYER - Supports stable log physics
     movePlayer(dx, dy, dz) {
         if (!this.isPlaying || this.gameOver || this.levelComplete || !this.player) return;
         
-        // ✅ STABLE LOG PHYSICS: Allow deliberate movement while riding log
-        if (this.player.ridingLog) {
-            console.log(`🪵 Frog on stable log - allowing controlled movement`);
-            // Automatic log movement is handled in checkCollisions()
-            // This just adds player input on top of that
-        }
+    // ✅ NEW: If on log, update the offset instead of absolute position
+    if (this.player.ridingLog) {
+        this.player.logOffset += dx; // Update position relative to log
+        console.log(`🪵 Frog moved on log - new offset: ${this.player.logOffset.toFixed(2)}`);
+    }
         
         this.player.move(dx, dy, dz);
         this.updatePlayerBounds();
@@ -396,16 +415,6 @@ export class Game {
         const startZone = playerPos.z >= 14;                              // Starting grass
         const goalZone = playerPos.z <= -13;                              // ✅ GFL goal building area
         
-        // Debug output (uncomment to see zones)
-       /* console.log(`🐸 Frog at Z: ${playerPos.z.toFixed(1)} - Zone: ${
-            roadZone ? 'ROAD' : 
-            safeMedianZone ? 'SAFE MEDIAN' : 
-            waterZone ? 'WATER' : 
-            startZone ? 'START' : 
-            goalZone ? 'GOAL' : 'UNKNOWN'
-        }`);
-        */
-        
         if (waterZone) {
             // ✅ STABLE LOG PHYSICS - Player must be on log or drown
             let onStableLog = false;
@@ -418,16 +427,21 @@ export class Game {
                         onStableLog = true;
                         ridingLog = obstacle;
                         
-                        // ✅ STABLE MOVEMENT: Player moves WITH log automatically
-                        // No extra sensitivity - just smooth movement with the log
-                        const logMovement = obstacle.velocity.x * 0.016; // Smooth frame-rate independent
-                        this.player.position.x += logMovement;
+                        // ✅ NEW: Anchor frog to log but allow movement
+                        if (!this.player.ridingLog || this.player.ridingLog !== ridingLog) {
+                            // First time on this log - store relative position
+                            this.player.logOffset = this.player.position.x - obstacle.position.x;
+                            console.log(`🪵 Frog hopped onto log at offset: ${this.player.logOffset.toFixed(2)}`);
+                        }
+                        
+                        // Keep frog at same relative position on the log (this happens every frame)
+                        this.player.position.x = obstacle.position.x + this.player.logOffset;
                         this.updatePlayerBounds();
                         
                         // Store riding state for input handling
                         this.player.ridingLog = ridingLog;
                         
-                        console.log(`🪵 Frog stable on log - moving with current`);
+                        console.log(`🪵 Frog riding log at relative position`);
                         break;
                     }
                 }
@@ -468,7 +482,7 @@ export class Game {
         }
     }
     
-    // ✅ UPDATED WIN CONDITION for GFL goal building
+    // ✅ UPDATED WIN CONDITION with multi-frog system
     checkWinCondition() {
         if (!this.player) return;
         
@@ -480,11 +494,256 @@ export class Game {
                 const distance = this.player.position.distanceTo(goalBuilding.position);
                 if (distance < 8) { // Within building area
                     console.log('🏆 Frog reached the GFL goal building!');
-                    this.levelCompleted();
+                    this.frogRescued();
                     return;
                 }
             }
         }
+    }
+    
+    // ✅ NEW: Handle individual frog rescue
+    async frogRescued() {
+        this.isPlaying = false; // Pause game
+        this.frogsRescued++;
+        
+        // Award rescue bonus
+        this.score += 50;
+        this.ui.updateScore(this.score);
+        
+        // Play rescue sound
+        if (this.audioManager) {
+            this.audioManager.playSFX('levelfinish');
+        }
+        
+        // Add visual frog to goal area
+        await this.addFrogImage();
+        
+        // Update UI progress
+        this.ui.updateFrogProgress(this.frogsRescued, this.totalFrogsNeeded);
+        
+        if (this.frogsRescued >= this.totalFrogsNeeded) {
+            // All frogs rescued - complete level!
+            this.levelCompleted();
+        } else {
+            // More frogs needed - show rescue message and reset
+            this.ui.showFrogRescued(this.frogsRescued, this.totalFrogsNeeded);
+            
+            // Auto-reset after a short delay
+            setTimeout(() => {
+                this.resetForNextFrog();
+            }, 2000);
+        }
+        
+        console.log(`🐸 Frog ${this.frogsRescued}/${this.totalFrogsNeeded} rescued!`);
+    }
+    
+    // ✅ NEW: Reset player for next frog rescue
+    resetForNextFrog() {
+        // ✅ Clear riding state
+        if (this.player) {
+            this.player.ridingLog = null;
+            this.player.setPosition(0, 0, 17);
+        }
+        
+        this.ui.hideFrogRescued();
+        this.isPlaying = true;
+        
+        console.log('🔄 Reset for next frog rescue');
+    }
+    
+    // ✅ NEW: Add visual frog image to goal area
+    async addFrogImage() {
+        try {
+            const texture = await this.loadTexture('/gflmemer.png');
+            
+            const frogMaterial = new THREE.MeshLambertMaterial({
+                map: texture,
+                transparent: true,
+                alphaTest: 0.1
+            });
+            
+            const frogGeometry = new THREE.PlaneGeometry(2, 2);
+            const frogImage = new THREE.Mesh(frogGeometry, frogMaterial);
+            
+            // Position frogs in front of GFL building
+            const xPositions = [-6, -2, 2, 6]; // Spread across building front
+            const xPos = xPositions[this.frogsRescued - 1] || 0;
+            
+            frogImage.position.set(xPos, 1, -15);
+            frogImage.castShadow = false;
+            frogImage.receiveShadow = false;
+            
+            this.savedFrogImages.push(frogImage);
+            this.scene.add(frogImage);
+            
+            console.log(`✅ Added frog image ${this.frogsRescued} at position ${xPos}`);
+            
+        } catch (error) {
+            console.warn('⚠️ Could not load gflmemer.png, using placeholder');
+            this.addPlaceholderFrog();
+        }
+    }
+
+// ✅ VIBRANT PNG FIX: Force color saturation and proper orientation
+async addFrogImage() {
+    try {
+        const texture = await this.loadTexture('/gflmemer.png');
+        
+        // ✅ TEXTURE SETTINGS: Force vibrant colors with correct orientation
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.generateMipmaps = false;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        // ✅ REMOVED: flipY = false (was causing upside down image)
+        
+        // ✅ VIBRANT MATERIAL: Boost saturation
+        const frogMaterial = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            alphaTest: 0.1,
+            side: THREE.DoubleSide,
+            toneMapped: false,  // Prevents tone mapping that can wash out colors
+            opacity: 1.0
+        });
+        
+        const frogWidth = 3;
+        const frogHeight = 3;
+        const frogGeometry = new THREE.PlaneGeometry(frogWidth, frogHeight);
+        const frogImage = new THREE.Mesh(frogGeometry, frogMaterial);
+        
+        const xPositions = [-6, -2, 2, 6];
+        const xPos = xPositions[this.frogsRescued - 1] || 0;
+        
+        frogImage.position.set(xPos, 1.5, -13);
+        frogImage.castShadow = false;
+        frogImage.receiveShadow = false;
+        
+        this.savedFrogImages.push(frogImage);
+        this.scene.add(frogImage);
+        
+        console.log(`✅ Added RIGHT-SIDE-UP vibrant frog image ${this.frogsRescued}`);
+        
+    } catch (error) {
+        console.warn('⚠️ Could not load gflmemer.png, using placeholder');
+        this.addPlaceholderFrog();
+    }
+}
+
+// ✅ SAME VIBRANT SETTINGS: Update saved frog images
+async addSavedFrogImages() {
+    console.log(`🐸 Adding ${this.frogsRescued} saved frog images...`);
+    
+    this.clearSavedFrogImages();
+    
+    for (let i = 0; i < this.frogsRescued; i++) {
+        try {
+            const texture = await this.loadTexture('/gflmemer.png');
+            
+            // ✅ SAME VIBRANT TEXTURE SETTINGS with correct orientation
+            texture.colorSpace = THREE.SRGBColorSpace;
+            texture.generateMipmaps = false;
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            // ✅ REMOVED: flipY = false (was causing upside down image)
+            
+            const frogMaterial = new THREE.MeshBasicMaterial({
+                map: texture,
+                transparent: true,
+                alphaTest: 0.1,
+                side: THREE.DoubleSide,
+                toneMapped: false,
+                opacity: 1.0
+            });
+            
+            const frogWidth = 3;
+            const frogHeight = 3;
+            const frogGeometry = new THREE.PlaneGeometry(frogWidth, frogHeight);
+            const frogImage = new THREE.Mesh(frogGeometry, frogMaterial);
+            
+            const xPositions = [-6, -2, 2, 6];
+            const xPos = xPositions[i] || 0;
+            
+            frogImage.position.set(xPos, 1.5, -13);
+            frogImage.castShadow = false;
+            frogImage.receiveShadow = false;
+            
+            this.savedFrogImages.push(frogImage);
+            this.scene.add(frogImage);
+            
+        } catch (error) {
+            console.warn(`⚠️ Could not load frog image ${i + 1}`);
+        }
+    }
+    
+    console.log(`✅ Added ${this.savedFrogImages.length} RIGHT-SIDE-UP frog images`);
+}
+    
+    // ✅ UPDATED: Placeholder frog if image fails to load - Fixed positioning
+    addPlaceholderFrog() {
+        const placeholderMaterial = new THREE.MeshLambertMaterial({ 
+            color: 0x00ff00,
+            emissive: 0x004400,
+            emissiveIntensity: 0.3
+        });
+        
+        const placeholderGeometry = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+        const placeholder = new THREE.Mesh(placeholderGeometry, placeholderMaterial);
+        
+        const xPositions = [-6, -2, 2, 6];
+        const xPos = xPositions[this.frogsRescued - 1] || 0;
+        
+        // ✅ FIXED: Same positioning as addFrogImage()
+        placeholder.position.set(xPos, 1.5, -13); // Changed z from -15 to -13, y from 1 to 1.5
+        
+        this.savedFrogImages.push(placeholder);
+        this.scene.add(placeholder);
+        
+        console.log(`✅ Added placeholder frog ${this.frogsRescued} at position (${xPos}, 1.5, -13)`);
+    }
+    
+    // ✅ NEW: Clear saved frog images
+    clearSavedFrogImages() {
+        this.savedFrogImages.forEach(frogImage => {
+            this.scene.remove(frogImage);
+            if (frogImage.geometry) frogImage.geometry.dispose();
+            if (frogImage.material && frogImage.material.map) {
+                frogImage.material.map.dispose();
+            }
+        });
+        this.savedFrogImages = [];
+    }
+    
+    // ✅ NEW: Load texture helper
+    loadTexture(url) {
+        return new Promise((resolve, reject) => {
+            const loader = new THREE.TextureLoader();
+            loader.load(
+                url,
+                (texture) => resolve(texture),
+                (progress) => console.log('📥 Loading texture...'),
+                (error) => reject(error)
+            );
+        });
+    }
+    
+    // ✅ NEW: Placeholder frog if image fails to load
+    addPlaceholderFrog() {
+        const placeholderMaterial = new THREE.MeshLambertMaterial({ 
+            color: 0x00ff00,
+            emissive: 0x004400,
+            emissiveIntensity: 0.3
+        });
+        
+        const placeholderGeometry = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+        const placeholder = new THREE.Mesh(placeholderGeometry, placeholderMaterial);
+        
+        const xPositions = [-6, -2, 2, 6];
+        const xPos = xPositions[this.frogsRescued - 1] || 0;
+        
+        placeholder.position.set(xPos, 1, -15);
+        
+        this.savedFrogImages.push(placeholder);
+        this.scene.add(placeholder);
     }
     
     // ✅ ENHANCED PLAYER HIT with riding state cleanup
@@ -514,6 +773,7 @@ export class Game {
         }
     }
     
+    // ✅ UPDATED: Only called when all frogs are rescued
     levelCompleted() {
         this.isPlaying = false;
         this.levelComplete = true;
@@ -531,7 +791,7 @@ export class Game {
             this.audioManager.playSFX('levelfinish');
         }
         
-        console.log(`🎉 Level ${this.currentLevel} completed! Score: ${this.score}`);
+        console.log(`🎉 Level ${this.currentLevel} completed with all ${this.totalFrogsNeeded} frogs! Score: ${this.score}`);
     }
     
     endGame(victory = false) {
@@ -605,34 +865,9 @@ export class Game {
             this.player = null;
         }
         
+        // Clean up saved frog images
+        this.clearSavedFrogImages();
+        
         console.log('✅ Game disposal complete');
     }
 }
-
-// ✅ COMPLETE GAME.JS SUMMARY:
-//
-// 1. ✅ UPDATED GAME ZONES:
-//    - Road: Z 1 to 11 (cars)
-//    - Safe median: Z -5 to 0 (6-unit wide safe walking area)
-//    - Water: Z -13 to -5 (logs)
-//    - Goal: Z < -13 (GFL building)
-//
-// 2. ✅ STABLE LOG PHYSICS:
-//    - player.ridingLog tracks which log player is on
-//    - Automatic smooth movement with log (no sensitivity issues)
-//    - Player input still works while on log for deliberate movement
-//    - Clear riding state on hit/restart/level change
-//
-// 3. ✅ GFL GOAL BUILDING:
-//    - Win condition: reach building area (Z < -13 and within 8 units of building)
-//    - Updated player bounds to allow reaching goal (minZ: -17)
-//
-// 4. ✅ SIMPLE RESTART:
-//    - No complex WebGL cleanup
-//    - Uses cached materials for fast restart
-//    - Clears riding state properly
-//
-// 5. ✅ ENHANCED SAFETY:
-//    - Wide safe median zone (6 units) for left/right movement
-//    - Clear zone separation prevents accidental zone crossings
-//    - Debug output shows current zone

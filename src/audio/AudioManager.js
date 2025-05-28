@@ -18,16 +18,17 @@ export class AudioManager {
     async initializeAudio() {
         try {
             // Don't create AudioContext until user interaction
-            // Just load the audio files for now
-            await this.loadMusic('background', './audio/FeelingFroggish.mp3');
+            // Load both music tracks
+            await this.loadMusic('landing', './audio/PatriotFrog.mp3');      // 🎵 NEW: Landing page music
+            await this.loadMusic('background', './audio/FeelingFroggish.mp3'); // 🎵 Game music
             
-            // 🔧 FIXED: Remove './public/' prefix - should match music path pattern
+            // Load SFX
             await this.loadSFX('jump', './audio/jump.mp3');
             await this.loadSFX('lose', './audio/lose.mp3');
             await this.loadSFX('levelfinish', './audio/levelfinish.mp3');
             
             this.isInitialized = true;
-            console.log('🎵 Audio system initialized (waiting for user interaction)');
+            console.log('🎵 Audio system initialized with both landing and game music');
             
         } catch (error) {
             console.warn('Audio initialization failed:', error);
@@ -68,7 +69,7 @@ export class AudioManager {
             return new Promise((resolve, reject) => {
                 audio.addEventListener('canplaythrough', () => {
                     this.sounds[name] = audio;
-                    console.log(`🎵 Music loaded: ${name}`);
+                    console.log(`🎵 Music loaded: ${name} (${url})`);
                     resolve(audio);
                 });
                 
@@ -92,7 +93,6 @@ export class AudioManager {
             audio.volume = this.sfxVolume;
             audio.preload = 'auto';
             
-            // 🔧 ENHANCED: Add proper loading promise like music
             return new Promise((resolve, reject) => {
                 audio.addEventListener('canplaythrough', () => {
                     this.sounds[name] = audio;
@@ -114,8 +114,12 @@ export class AudioManager {
         }
     }
     
+    // 🎵 ENHANCED: Support for different music tracks
     playMusic(name = 'background') {
-        if (!this.isInitialized || this.isMuted || !this.sounds[name]) return;
+        if (!this.isInitialized || this.isMuted || !this.sounds[name]) {
+            console.warn(`🎵 Cannot play music '${name}': ${!this.isInitialized ? 'not initialized' : this.isMuted ? 'muted' : 'sound not found'}`);
+            return;
+        }
         
         try {
             // Enable audio context on first play attempt
@@ -135,16 +139,16 @@ export class AudioManager {
                 playPromise
                     .then(() => {
                         this.currentMusic = music;
-                        console.log('🎵 Background music started');
+                        console.log(`🎵 ${name} music started`);
                     })
                     .catch(error => {
-                        console.warn('Music play failed:', error);
+                        console.warn(`Music play failed for ${name}:`, error);
                         // Don't set currentMusic if play failed
                     });
             }
             
         } catch (error) {
-            console.warn('Failed to play music:', error);
+            console.warn(`Failed to play music ${name}:`, error);
         }
     }
     
@@ -241,6 +245,29 @@ export class AudioManager {
         }, stepTime);
     }
     
+    // 🎵 NEW: Smooth transition between music tracks
+    switchMusic(newTrackName, fadeOutDuration = 500, fadeInDelay = 200) {
+        if (!this.sounds[newTrackName]) {
+            console.warn(`Cannot switch to music '${newTrackName}': track not found`);
+            return;
+        }
+        
+        console.log(`🎵 Switching music to: ${newTrackName}`);
+        
+        // Fade out current music
+        if (this.currentMusic) {
+            this.fadeMusic(0, fadeOutDuration);
+            
+            // After fade out, start new music
+            setTimeout(() => {
+                this.playMusic(newTrackName);
+            }, fadeOutDuration + fadeInDelay);
+        } else {
+            // No current music, just start new one
+            this.playMusic(newTrackName);
+        }
+    }
+    
     // Get audio info for UI display
     getAudioState() {
         return {
@@ -248,10 +275,23 @@ export class AudioManager {
             isPlaying: this.currentMusic && !this.currentMusic.paused,
             musicVolume: this.musicVolume,
             sfxVolume: this.sfxVolume,
-            currentTrack: this.currentMusic ? 'FeelingFroggish' : null,
+            currentTrack: this.getCurrentTrackName(),
             isInitialized: this.isInitialized,
-            loadedSounds: Object.keys(this.sounds) // 🔧 ADDED: Debug info
+            loadedSounds: Object.keys(this.sounds)
         };
+    }
+    
+    // 🎵 NEW: Get current track name for debugging
+    getCurrentTrackName() {
+        if (!this.currentMusic) return null;
+        
+        // Find which track is currently playing
+        for (const [name, audio] of Object.entries(this.sounds)) {
+            if (audio === this.currentMusic) {
+                return name;
+            }
+        }
+        return 'unknown';
     }
     
     // Browser compatibility check

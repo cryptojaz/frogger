@@ -28,8 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// In main.js, update the UI event listeners to handle async operations:
-
 function initializeGame(audioManager = null) {
     console.log('🚀 Initializing game...');
     
@@ -44,48 +42,58 @@ function initializeGame(audioManager = null) {
     // Create UI instance - this handles all the start screen logic
     ui = new UI();
     
+    // Add missing methods check and create them if needed
+    ensureUIMethodsExist(ui);
+    
     // Set up UI event listeners with async support
-// In main.js, simplify the restart handler:
+    // ✅ Simple restart handler - no loading state complexity needed
+    ui.on('restartGame', async () => {
+        console.log('🔄 Restart game event from UI');
+        if (game) {
+            await game.restartGame(); // Just await it
+        }
+    });
 
-// ✅ Simple restart handler - no loading state complexity needed
-ui.on('restartGame', async () => {
-    console.log('🔄 Restart game event from UI');
-    if (game) {
-        await game.restartGame(); // Just await it
-    }
-});
-
-// Also remove the hideLoadingOnGameStart() call from startGame:
-ui.on('startGame', () => {
-    console.log('🎮 Start game event from UI');
-    if (game) {
-        game.startGame();
-        // ❌ Remove this line: ui.hideLoadingOnGameStart();
-    }
-});
+    // Also remove the hideLoadingOnGameStart() call from startGame:
+    ui.on('startGame', () => {
+        console.log('🎮 Start game event from UI');
+        if (game) {
+            game.startGame();
+        }
+    });
     
     // ✅ Handle async continue properly  
-// In main.js, replace the broken continueGame handler:
+    ui.on('continueGame', async () => {
+        console.log('➡️ Continue game event from UI');
+        if (game) {
+            await game.nextLevel(); // Just await it, no broken loading calls
+        }
+    });
 
-ui.on('continueGame', async () => {
-    console.log('➡️ Continue game event from UI');
-    if (game) {
-        await game.nextLevel(); // Just await it, no broken loading calls
-    }
-});
+    // ✅ NEW: Handle individual frog rescue continue (added this missing event)
+    ui.on('continueNextFrog', () => {
+        console.log('🐸 Continue next frog event from UI');
+        if (game) {
+            game.resetForNextFrog(); // This method exists in Game.js
+        }
+    });
 
-    // Rest of the function stays the same...
+    // ✅ UPDATED: Complete UI interface with ALL methods including new frog ones
     const gameUI = {
         updateScore: (score) => ui.updateScore(score),
         updateLives: (lives) => ui.updateLives(lives),
         updateLevel: (level) => ui.updateLevel(level),
+        updateFrogProgress: (current, total) => ui.updateFrogProgress(current, total), // ✅ ADDED MISSING METHOD
         showStartScreen: () => ui.showStartScreen(),
         hideStartScreen: () => ui.hideStartScreen(),
         showHUD: () => ui.showHUD(),
         showGameOver: (finalScore) => ui.showGameOver(finalScore),
         hideGameOver: () => ui.hideGameOver(),
         showLevelComplete: (nextLevel) => ui.showLevelComplete(nextLevel),
-        hideLevelComplete: () => ui.hideLevelComplete()
+        hideLevelComplete: () => ui.hideLevelComplete(),
+        showFrogRescued: (current, total) => ui.showFrogRescued(current, total), // ✅ ADDED MISSING METHOD
+        hideFrogRescued: () => ui.hideFrogRescued(), // ✅ ADDED MISSING METHOD
+        showNotification: (message, type) => ui.showNotification(message, type) // ✅ ADDED MISSING METHOD
     };
 
     // Create and initialize the game
@@ -99,13 +107,90 @@ ui.on('continueGame', async () => {
             game.handleResize();
         });
         
-        ui.showStartScreen();
-        console.log('🎮 Game ready - click START GAME or press SPACE to begin');
+        // Safe start screen call with error handling
+        try {
+            ui.showStartScreen();
+            console.log('🎮 Game ready - click START GAME or press SPACE to begin');
+        } catch (error) {
+            console.error('⚠️ Error showing start screen:', error);
+            // Fallback - try to show basic start screen without problematic methods
+            ui.elements.startMessage.classList.remove('hidden');
+            console.log('🎮 Fallback start screen shown');
+        }
         
     }).catch(error => {
         console.error('❌ Failed to initialize game:', error);
         ui.showNotification('Failed to load game: ' + error.message, 'error');
     });
+}
+
+// ✅ NEW: Ensure all UI methods exist to prevent errors
+function ensureUIMethodsExist(ui) {
+    // Check and add missing hideLevel2ComingSoon method
+    if (typeof ui.hideLevel2ComingSoon !== 'function') {
+        console.log('🔧 Adding missing hideLevel2ComingSoon method');
+        ui.hideLevel2ComingSoon = function() {
+            const comingSoonElement = document.getElementById('level2-coming-soon');
+            if (comingSoonElement) {
+                comingSoonElement.classList.add('hidden');
+            }
+        };
+    }
+    
+    // Check and add missing hideLevel3ComingSoon method
+    if (typeof ui.hideLevel3ComingSoon !== 'function') {
+        console.log('🔧 Adding missing hideLevel3ComingSoon method');
+        ui.hideLevel3ComingSoon = function() {
+            const comingSoonElement = document.getElementById('level3-coming-soon');
+            if (comingSoonElement) {
+                comingSoonElement.classList.add('hidden');
+            }
+        };
+    }
+    
+    // Check and add missing hideFrogRescued method
+    if (typeof ui.hideFrogRescued !== 'function') {
+        console.log('🔧 Adding missing hideFrogRescued method');
+        ui.hideFrogRescued = function() {
+            const frogRescuedElement = document.getElementById('frog-rescued-message');
+            if (frogRescuedElement) {
+                frogRescuedElement.classList.add('hidden');
+            }
+        };
+    }
+    
+    // Check and add missing updateFrogProgress method
+    if (typeof ui.updateFrogProgress !== 'function') {
+        console.log('🔧 Adding missing updateFrogProgress method');
+        ui.updateFrogProgress = function(currentFrogs, totalFrogs) {
+            const frogCountElement = document.getElementById('frog-count');
+            if (frogCountElement) {
+                frogCountElement.textContent = `${currentFrogs}/${totalFrogs}`;
+                
+                // Add visual feedback for frog rescue
+                if (currentFrogs > 0) {
+                    frogCountElement.style.color = currentFrogs >= totalFrogs ? '#00ff00' : '#ffaa00';
+                    if (typeof ui.animateElement === 'function') {
+                        ui.animateElement(frogCountElement.parentElement);
+                    }
+                }
+            }
+        };
+    }
+    
+    // Check and add missing showFrogRescued method
+    if (typeof ui.showFrogRescued !== 'function') {
+        console.log('🔧 Adding missing showFrogRescued method');
+        ui.showFrogRescued = function(currentFrogs, totalFrogs) {
+            console.log(`🐸 Frog rescued: ${currentFrogs}/${totalFrogs}`);
+            // Simple fallback - just show a notification
+            if (typeof ui.showNotification === 'function') {
+                ui.showNotification(`Frog Rescued! ${currentFrogs}/${totalFrogs} saved`, 'success');
+            }
+        };
+    }
+    
+    console.log('✅ UI methods check completed');
 }
 
 function setupControls(game) {
@@ -236,5 +321,13 @@ window.debugGame = {
     },
     hideStartScreen: () => {
         if (ui) ui.hideStartScreen();
+    },
+    // ✅ NEW: Debug helpers for UI methods
+    testUI: () => {
+        if (ui) {
+            console.log('UI methods available:', Object.getOwnPropertyNames(Object.getPrototypeOf(ui)));
+            console.log('hideLevel2ComingSoon exists:', typeof ui.hideLevel2ComingSoon === 'function');
+            console.log('hideLevel3ComingSoon exists:', typeof ui.hideLevel3ComingSoon === 'function');
+        }
     }
 };
