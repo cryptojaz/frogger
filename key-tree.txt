@@ -1,0 +1,60 @@
+
+/Users/jaz2024/Desktop/modern-3d-frogger
+├── index.html
+├── key-tree.txt
+├── listTree.cts
+├── package.json
+├── pnpm-lock.yaml
+├── public
+|  ├── audio
+|  |  ├── FeelingFroggish.mp3
+|  |  ├── jump.mp3
+|  |  ├── levelfinish.mp3
+|  |  └── lose.mp3
+|  ├── bus.png
+|  ├── cybertruck.png
+|  ├── frogger.png
+|  ├── froggerleft.png
+|  ├── froggermain.png
+|  ├── froggerright.png
+|  ├── landing.png
+|  ├── landing2.png
+|  ├── landing3.png
+|  ├── landing4.png
+|  ├── landing5.png
+|  ├── landing6.png
+|  ├── landing7.png
+|  ├── player
+|  |  ├── dying.glb
+|  |  ├── idling-processed.glb
+|  |  ├── idling.glb
+|  |  ├── idling_compressed.glb
+|  |  ├── idling_simple.glb
+|  |  ├── idling_ultra.glb
+|  |  ├── jumping.glb
+|  |  ├── running.glb
+|  |  └── victory.glb
+|  ├── sportscar.png
+|  └── taxi.png
+├── src
+|  ├── audio
+|  |  └── AudioManager.js
+|  ├── game
+|  |  ├── Game.js
+|  |  ├── Level.js
+|  |  ├── Player.js
+|  |  └── Vehicle.js
+|  ├── main.js
+|  ├── styles
+|  |  └── main.css
+|  └── ui
+|     ├── LandingPage.js
+|     └── UI.js
+└── vite.config.js
+
+directory: 9 file: 43 symboliclink: 8
+
+ignored: directory (1)
+
+
+[2K[1G

@@ -1,10 +1,10 @@
-// POLISHED CITY LEVEL - Enhanced with Frogger decorations
-// 1. Subtle gray boundaries
-// 2. Safe sidewalk strip between road and river  
-// 3. Stable log physics - no unwanted movement
-// 4. Building area as goal instead of lily pads
-// 5. Static frogger.png images on sides of GFL building
-// 6. Decorative trees at bottom corners
+// REFINED CITY LEVEL - Enhanced with subtle improvements
+// 1. Full-width grass extending to bottom edge
+// 2. Repositioned trees from water to sidewalk
+// 3. Larger, lower-positioned frog decorations
+// 4. Full-screen width for all terrain sections
+// 5. Corner buildings to eliminate blue gaps
+// 6. Streamlined code without added complexity
 
 import * as THREE from 'three';
 import { Car, Log, Turtle, Crocodile, Cybertruck, Taxi, Bus } from './Vehicle.js';
@@ -16,8 +16,8 @@ export class Level {
         this.worldWidth = worldWidth;
         this.worldDepth = worldDepth;
         
-        // Screen dimensions
-        this.screenWidth = 60;
+        // Screen dimensions - extended for seamless feel
+        this.screenWidth = 80; // Increased for full coverage
         this.playableWidth = worldWidth;
         
         // Level objects
@@ -49,7 +49,7 @@ export class Level {
                 // City foundation
                 cityGround: new THREE.MeshLambertMaterial({ color: 0x444444 }),
                 
-                // ✅ SUBTLE BOUNDARY MARKERS (much less obvious)
+                // Subtle boundary markers
                 boundaryMarker: new THREE.MeshLambertMaterial({ color: 0x999999, transparent: true, opacity: 0.3 }),
                 
                 // Lane markings
@@ -61,8 +61,8 @@ export class Level {
                 building2: new THREE.MeshLambertMaterial({ color: 0x666666 }),
                 building3: new THREE.MeshLambertMaterial({ color: 0x777777 }),
                 
-                // ✅ GOAL AREA (building zone)
-                goalBuilding: new THREE.MeshLambertMaterial({ color: 0x4a90e2 }), // Blue goal building
+                // Goal area
+                goalBuilding: new THREE.MeshLambertMaterial({ color: 0x4a90e2 }),
                 goalGlow: new THREE.MeshLambertMaterial({ 
                     color: 0x00ff88, 
                     emissive: 0x004422,
@@ -94,7 +94,6 @@ export class Level {
         [...this.terrain, ...this.decorations, ...this.goals].forEach(obj => {
             this.scene.remove(obj);
             if (obj.geometry) obj.geometry.dispose();
-            // Dispose textures if they exist
             if (obj.material && obj.material.map) {
                 obj.material.map.dispose();
             }
@@ -113,53 +112,54 @@ export class Level {
     }
     
     async create() {
-        console.log(`🏗️ Creating enhanced Level ${this.levelNumber}...`);
+        console.log(`🏗️ Creating refined Level ${this.levelNumber}...`);
         
         switch (this.levelNumber) {
             case 1:
-                await this.createLevel1_EnhancedCity();
+                await this.createLevel1_RefinedCity();
                 break;
             default:
-                await this.createLevel1_EnhancedCity();
+                await this.createLevel1_RefinedCity();
         }
         
-        console.log(`✅ Enhanced Level ${this.levelNumber} created`);
+        console.log(`✅ Refined Level ${this.levelNumber} created`);
     }
     
-    async createLevel1_EnhancedCity() {
-        console.log('🌆 Creating enhanced city Frogger with decorative elements');
+    async createLevel1_RefinedCity() {
+        console.log('🌆 Creating refined city Frogger');
         
         // Foundation
         this.createPolishedCityFoundation();
         
-        // ✅ PROPER GAME LAYOUT WITH SAFE MEDIAN
-        this.createStartingArea();           // Bottom: Starting grass
-        this.createRoadSection();           // Road with cars
-        this.createSafeMedianStrip();       // ✅ SAFE SIDEWALK between road & river
-        this.createRiverSection();          // River with logs
-        this.createGoalBuildingArea();      // ✅ TOP: Goal building area instead of lily pads
+        // Game layout with full-width sections
+        this.createFullWidthStartingArea();    // Extended grass to bottom
+        this.createFullWidthRoadSection();     // Full-width road
+        this.createSafeMedianStrip();          // Safe zone with relocated trees
+        this.createFullWidthRiverSection();    // Full-width river
+        this.createGoalBuildingArea();         // Goal area
         
         // Obstacles
         this.createRoadVehicles();
-        this.createStableRiverLogs();       // ✅ STABLE LOG PHYSICS
+        this.createStableRiverLogs();
         
-        // Environment
-        this.createSubtleBoundaries();      // ✅ SUBTLE gray boundaries
-        this.createCornerBuildings();
-        this.createCornerTrees();
+        // Environment enhancements
+        this.createSubtleBoundaries();
+        this.createCornerBuildings();          // Enhanced to fill blue gaps
+        this.createBackgroundCityBuildings();  // City buildings behind GFL building
         
-        // ✅ NEW: Enhanced decorations
-        await this.createBottomTrees();     // Trees at bottom corners
-        await this.createFroggerDecorations(); // Static frogger images by GFL building
+        // Decorative elements
+        await this.createSidewalkTrees();      // Moved from water to sidewalk
+        await this.createBottomGrassTrees();   // Trees on grass sides
+        await this.createEnhancedFroggerDecorations(); // Larger, lower frogs
         
-        console.log('✅ Enhanced city created with frogger decorations and bottom trees');
+        console.log('✅ Refined city created with seamless coverage');
     }
     
     createPolishedCityFoundation() {
-        console.log('🏗️ Creating polished city foundation...');
+        console.log('🏗️ Creating seamless city foundation...');
         
-        // Large city ground
-        const groundSize = 120;
+        // Extended city ground for complete coverage
+        const groundSize = 140;
         const groundGeometry = new THREE.PlaneGeometry(groundSize, groundSize);
         const cityGround = new THREE.Mesh(groundGeometry, this.sharedMaterials.cityGround);
         cityGround.rotation.x = -Math.PI / 2;
@@ -168,17 +168,16 @@ export class Level {
         this.decorations.push(cityGround);
         this.scene.add(cityGround);
         
-        console.log('✅ City foundation complete');
+        console.log('✅ Seamless city foundation complete');
     }
     
-    // ✅ SUBTLE BOUNDARY MARKERS (much smaller and transparent)
     createSubtleBoundaries() {
         console.log('🚧 Creating subtle boundary markers...');
         
-        const boundaryWidth = 0.5; // Much smaller than before
+        const boundaryWidth = 0.5;
         const playDepth = 36;
         
-        // Left boundary - SUBTLE
+        // Left boundary
         const leftBoundary = new THREE.PlaneGeometry(boundaryWidth, playDepth);
         const leftMarker = new THREE.Mesh(leftBoundary, this.sharedMaterials.boundaryMarker);
         leftMarker.rotation.x = -Math.PI / 2;
@@ -186,7 +185,7 @@ export class Level {
         this.decorations.push(leftMarker);
         this.scene.add(leftMarker);
         
-        // Right boundary - SUBTLE
+        // Right boundary
         const rightBoundary = new THREE.PlaneGeometry(boundaryWidth, playDepth);
         const rightMarker = new THREE.Mesh(rightBoundary, this.sharedMaterials.boundaryMarker);
         rightMarker.rotation.x = -Math.PI / 2;
@@ -194,24 +193,28 @@ export class Level {
         this.decorations.push(rightMarker);
         this.scene.add(rightMarker);
         
-        console.log('✅ Subtle boundaries created - much less obvious');
+        console.log('✅ Subtle boundaries created');
     }
     
-    createStartingArea() {
-        // Starting grass (full screen width)
-        const grassGeometry = new THREE.PlaneGeometry(this.screenWidth, 4);
+    // 1. Full-width grass extending to bottom edge
+    createFullWidthStartingArea() {
+        console.log('🌱 Creating full-width grass extending to bottom...');
+        
+        const grassGeometry = new THREE.PlaneGeometry(this.screenWidth, 6); // Extended height
         const startGrass = new THREE.Mesh(grassGeometry, this.sharedMaterials.grass);
         startGrass.rotation.x = -Math.PI / 2;
-        startGrass.position.set(0, 0, 14);
+        startGrass.position.set(0, 0, 15); // Moved up to extend to bottom
         startGrass.receiveShadow = true;
         this.terrain.push(startGrass);
         this.scene.add(startGrass);
         
-        console.log('✅ Starting area created');
+        console.log('✅ Full-width starting grass created');
     }
     
-    createRoadSection() {
-        // Road (full screen width)
+    // 4. Full-width road spanning entire screen
+    createFullWidthRoadSection() {
+        console.log('🛣️ Creating full-width road section...');
+        
         const roadGeometry = new THREE.PlaneGeometry(this.screenWidth, 10);
         const road = new THREE.Mesh(roadGeometry, this.sharedMaterials.road);
         road.rotation.x = -Math.PI / 2;
@@ -220,10 +223,9 @@ export class Level {
         this.terrain.push(road);
         this.scene.add(road);
         
-        // Lane markings
         this.createLaneMarkings();
         
-        console.log('✅ Road section created');
+        console.log('✅ Full-width road section created');
     }
     
     createLaneMarkings() {
@@ -250,39 +252,39 @@ export class Level {
         }
     }
     
-    // ✅ SAFE MEDIAN STRIP - Wide path for left/right movement
     createSafeMedianStrip() {
-        console.log('🚶 Creating wide safe median path for left/right movement...');
+        console.log('🚶 Creating safe median with relocated trees...');
         
-        // MUCH WIDER safe sidewalk strip (full screen width) for proper safe zone
-        const medianGeometry = new THREE.PlaneGeometry(this.screenWidth, 6); // Made 6 units wide
+        const medianGeometry = new THREE.PlaneGeometry(this.screenWidth, 6);
         const medianSidewalk = new THREE.Mesh(medianGeometry, this.sharedMaterials.sidewalk);
         medianSidewalk.rotation.x = -Math.PI / 2;
-        medianSidewalk.position.set(0, 0.05, -2); // Positioned between road and river
+        medianSidewalk.position.set(0, 0.05, -2);
         medianSidewalk.receiveShadow = true;
         this.terrain.push(medianSidewalk);
         this.scene.add(medianSidewalk);
         
-        console.log('✅ Wide safe median path created - frog can move left/right safely');
+        console.log('✅ Safe median strip created');
     }
     
-    createRiverSection() {
-        // River (full screen width) - MOVED FURTHER DOWN
-        const riverGeometry = new THREE.PlaneGeometry(this.screenWidth, 8);
+    // 3. Extended river to full screen width
+    createFullWidthRiverSection() {
+        console.log('🌊 Creating extended full-width river section...');
+        
+        // Make river even wider than screen width to ensure full coverage
+        const extendedRiverWidth = this.screenWidth + 20; // Extra width for seamless edges
+        const riverGeometry = new THREE.PlaneGeometry(extendedRiverWidth, 8);
         const river = new THREE.Mesh(riverGeometry, this.sharedMaterials.water);
         river.rotation.x = -Math.PI / 2;
-        river.position.set(0, -0.05, -8); // Moved further down for clear separation
+        river.position.set(0, -0.05, -8);
         this.terrain.push(river);
         this.scene.add(river);
         
-        console.log('✅ River section created with proper separation');
+        console.log('✅ Extended full-width river section created');
     }
     
-    // ✅ GOAL BUILDING AREA with GFL letters
     createGoalBuildingArea() {
-        console.log('🏢 Creating goal building area with GFL letters...');
+        console.log('🏢 Creating goal building area...');
         
-        // Goal sidewalk area (full screen width)
         const goalSidewalkGeometry = new THREE.PlaneGeometry(this.screenWidth, 4);
         const goalSidewalk = new THREE.Mesh(goalSidewalkGeometry, this.sharedMaterials.sidewalk);
         goalSidewalk.rotation.x = -Math.PI / 2;
@@ -291,76 +293,59 @@ export class Level {
         this.terrain.push(goalSidewalk);
         this.scene.add(goalSidewalk);
         
-        // Goal building with glowing effect
+        // Goal building with GFL letters
         const goalBuildingGeometry = new THREE.BoxGeometry(12, 8, 4);
         const goalBuilding = new THREE.Mesh(goalBuildingGeometry, this.sharedMaterials.goalBuilding);
         goalBuilding.position.set(0, 4, -16);
         goalBuilding.castShadow = true;
         goalBuilding.receiveShadow = true;
         
-        // ✅ ADD GFL LETTERS to building
         this.addGFLLetters(goalBuilding);
         
-        // Add glowing goal indicator on building
+        // Glowing goal indicator
         const goalGlowGeometry = new THREE.PlaneGeometry(8, 2);
         const goalGlow = new THREE.Mesh(goalGlowGeometry, this.sharedMaterials.goalGlow);
-        goalGlow.position.set(0, -1, 2.01); // Below the letters
+        goalGlow.position.set(0, -1, 2.01);
         goalBuilding.add(goalGlow);
         
-        this.goals.push(goalBuilding); // This is what the frog needs to reach
+        this.goals.push(goalBuilding);
         this.decorations.push(goalBuilding);
         this.scene.add(goalBuilding);
         
-        console.log('✅ Goal building with GFL letters created');
+        console.log('✅ Goal building area created');
     }
     
-    // ✅ ADD PROPER GFL LETTERS to goal building
     addGFLLetters(building) {
-        console.log('🔤 Adding proper GFL letters to goal building...');
-        
-        // Create text geometry for each letter
         const letterMaterial = new THREE.MeshLambertMaterial({ 
             color: 0xffffff,
             emissive: 0x444444,
             emissiveIntensity: 0.5
         });
         
-        // Letter spacing and positioning
         const spacing = 2.5;
         const letterSize = 1.5;
         
-        // Create G letter using simple geometry shapes
         this.createLetterG(building, -spacing, 1, 2.1, letterSize, letterMaterial);
-        
-        // Create F letter
         this.createLetterF(building, 0, 1, 2.1, letterSize, letterMaterial);
-        
-        // Create L letter
         this.createLetterL(building, spacing, 1, 2.1, letterSize, letterMaterial);
-        
-        console.log('✅ Proper GFL letters added to building');
     }
     
     createLetterG(building, x, y, z, size, material) {
-        // G - Vertical left bar
         const gLeft = new THREE.BoxGeometry(0.3, size * 1.5, 0.2);
         const gLeftMesh = new THREE.Mesh(gLeft, material);
         gLeftMesh.position.set(x - size/3, y, z);
         building.add(gLeftMesh);
         
-        // G - Top horizontal bar
         const gTop = new THREE.BoxGeometry(size, 0.3, 0.2);
         const gTopMesh = new THREE.Mesh(gTop, material);
         gTopMesh.position.set(x, y + size/2, z);
         building.add(gTopMesh);
         
-        // G - Bottom horizontal bar
         const gBottom = new THREE.BoxGeometry(size, 0.3, 0.2);
         const gBottomMesh = new THREE.Mesh(gBottom, material);
         gBottomMesh.position.set(x, y - size/2, z);
         building.add(gBottomMesh);
         
-        // G - Middle horizontal bar (shorter)
         const gMiddle = new THREE.BoxGeometry(size/2, 0.3, 0.2);
         const gMiddleMesh = new THREE.Mesh(gMiddle, material);
         gMiddleMesh.position.set(x + size/4, y - size/4, z);
@@ -368,19 +353,16 @@ export class Level {
     }
     
     createLetterF(building, x, y, z, size, material) {
-        // F - Vertical left bar
         const fLeft = new THREE.BoxGeometry(0.3, size * 1.5, 0.2);
         const fLeftMesh = new THREE.Mesh(fLeft, material);
         fLeftMesh.position.set(x - size/3, y, z);
         building.add(fLeftMesh);
         
-        // F - Top horizontal bar
         const fTop = new THREE.BoxGeometry(size, 0.3, 0.2);
         const fTopMesh = new THREE.Mesh(fTop, material);
         fTopMesh.position.set(x, y + size/2, z);
         building.add(fTopMesh);
         
-        // F - Middle horizontal bar
         const fMiddle = new THREE.BoxGeometry(size * 0.7, 0.3, 0.2);
         const fMiddleMesh = new THREE.Mesh(fMiddle, material);
         fMiddleMesh.position.set(x - size * 0.1, y, z);
@@ -388,37 +370,34 @@ export class Level {
     }
     
     createLetterL(building, x, y, z, size, material) {
-        // L - Vertical left bar
         const lLeft = new THREE.BoxGeometry(0.3, size * 1.5, 0.2);
         const lLeftMesh = new THREE.Mesh(lLeft, material);
         lLeftMesh.position.set(x - size/3, y, z);
         building.add(lLeftMesh);
         
-        // L - Bottom horizontal bar
         const lBottom = new THREE.BoxGeometry(size, 0.3, 0.2);
         const lBottomMesh = new THREE.Mesh(lBottom, material);
         lBottomMesh.position.set(x, y - size/2, z);
         building.add(lBottomMesh);
     }
     
-    // ✅ NEW: Create decorative trees at bottom corners by gray lines
-    async createBottomTrees() {
-        console.log('🌳 Creating decorative trees at bottom corners...');
+    // 1. Trees moved to GFL building row (same z-position)
+    async createSidewalkTrees() {
+        console.log('🌳 Creating trees on GFL building row...');
         
-        // Position trees near the gray boundary lines at the bottom
-        const bottomTreePositions = [
-            { x: -this.playableWidth/2 - 3, z: 16 }, // Left side of left gray line
-            { x: this.playableWidth/2 + 3, z: 16 }   // Right side of right gray line
+        const sidewalkTreePositions = [
+            { x: -this.playableWidth/2 - 3, z: -16 }, // Left side, same row as GFL building
+            { x: this.playableWidth/2 + 3, z: -16 }   // Right side, same row as GFL building
         ];
         
-        bottomTreePositions.forEach((pos, index) => {
+        sidewalkTreePositions.forEach((pos, index) => {
             // Tree trunk
             const trunkGeometry = new THREE.CylinderGeometry(0.3, 0.4, 3, 8);
             const trunk = new THREE.Mesh(trunkGeometry, this.sharedMaterials.trunk);
             trunk.position.set(pos.x, 1.5, pos.z);
             trunk.castShadow = true;
             
-            // Tree foliage - make it slightly different for each tree
+            // Tree foliage
             const foliageSize = 2 + (index * 0.3);
             const foliageGeometry = new THREE.SphereGeometry(foliageSize, 8, 6);
             const foliage = new THREE.Mesh(foliageGeometry, this.sharedMaterials.foliage);
@@ -432,54 +411,140 @@ export class Level {
             this.scene.add(foliage);
         });
         
-        console.log('✅ Bottom corner trees created');
+        console.log('✅ Trees moved to GFL building row');
     }
     
-    // ✅ NEW: Create static frogger decorations by GFL building
-    async createFroggerDecorations() {
-        console.log('🐸 Creating static frogger decorations by GFL building...');
+    // 1. City buildings behind GFL building (comprehensive coverage)
+    createBackgroundCityBuildings() {
+        console.log('🏙️ Creating comprehensive background city buildings...');
+        
+        const backgroundBuildings = [
+            // First row - complete coverage directly behind GFL building
+            { x: -15, z: -22, width: 3, height: 11, depth: 4, material: 'building3' },
+            { x: -12, z: -22, width: 3, height: 12, depth: 4, material: 'building2' },
+            { x: -8, z: -22, width: 4, height: 15, depth: 4, material: 'building1' },
+            { x: -3, z: -22, width: 4, height: 18, depth: 4, material: 'building2' },
+            { x: 3, z: -22, width: 4, height: 16, depth: 4, material: 'building3' },
+            { x: 8, z: -22, width: 4, height: 14, depth: 4, material: 'building1' },
+            { x: 12, z: -22, width: 3, height: 13, depth: 4, material: 'building3' },
+            { x: 15, z: -22, width: 3, height: 10, depth: 4, material: 'building2' },
+            
+            // Second row - extended coverage
+            { x: -12, z: -28, width: 5, height: 17, depth: 5, material: 'building1' },
+            { x: -6, z: -28, width: 5, height: 20, depth: 5, material: 'building2' },
+            { x: 0, z: -28, width: 5, height: 22, depth: 5, material: 'building3' },
+            { x: 6, z: -28, width: 5, height: 19, depth: 5, material: 'building1' },
+            { x: 12, z: -28, width: 5, height: 16, depth: 5, material: 'building2' },
+            
+            // Third row for complete city depth
+            { x: -8, z: -35, width: 6, height: 25, depth: 6, material: 'building3' },
+            { x: 0, z: -35, width: 6, height: 28, depth: 6, material: 'building1' },
+            { x: 8, z: -35, width: 6, height: 23, depth: 6, material: 'building2' }
+        ];
+        
+        backgroundBuildings.forEach(building => {
+            const buildingGeometry = new THREE.BoxGeometry(building.width, building.height, building.depth);
+            const buildingMesh = new THREE.Mesh(buildingGeometry, this.sharedMaterials[building.material]);
+            buildingMesh.position.set(building.x, building.height/2, building.z);
+            buildingMesh.castShadow = true;
+            buildingMesh.receiveShadow = true;
+            
+            this.addSimpleWindows(buildingMesh, building.width, building.height, building.depth);
+            
+            this.decorations.push(buildingMesh);
+            this.scene.add(buildingMesh);
+        });
+        
+        console.log('✅ Comprehensive background city buildings created - no gaps');
+    }
+    
+    // 2. Trees on bottom grass section sides
+    async createBottomGrassTrees() {
+        console.log('🌳 Creating trees on bottom grass section...');
+        
+        const bottomGrassTreePositions = [
+            // Left side trees
+            { x: -25, z: 16 },
+            { x: -22, z: 14 },
+            { x: -28, z: 18 },
+            
+            // Right side trees
+            { x: 25, z: 16 },
+            { x: 22, z: 14 },
+            { x: 28, z: 18 }
+        ];
+        
+        bottomGrassTreePositions.forEach((pos, index) => {
+            // Tree trunk
+            const trunkGeometry = new THREE.CylinderGeometry(0.25, 0.35, 2.5, 8);
+            const trunk = new THREE.Mesh(trunkGeometry, this.sharedMaterials.trunk);
+            trunk.position.set(pos.x, 1.25, pos.z);
+            trunk.castShadow = true;
+            
+            // Tree foliage - vary sizes
+            const foliageSize = 1.8 + (index % 3) * 0.2;
+            const foliageGeometry = new THREE.SphereGeometry(foliageSize, 8, 6);
+            const foliage = new THREE.Mesh(foliageGeometry, this.sharedMaterials.foliage);
+            foliage.position.set(pos.x, 3.5, pos.z);
+            foliage.scale.set(1, 0.85, 1);
+            foliage.castShadow = true;
+            
+            this.decorations.push(trunk);
+            this.decorations.push(foliage);
+            this.scene.add(trunk);
+            this.scene.add(foliage);
+        });
+        
+        console.log('✅ Bottom grass trees created');
+    }
+    
+    // Forward-facing, shadow-free frog decorations
+    async createEnhancedFroggerDecorations() {
+        console.log('🐸 Creating forward-facing, shadow-free frogger decorations...');
         
         try {
-            // Load frogger texture from public folder
             const froggerTexture = await this.loadTexture('/frogger.png');
             
-            // Create material with the frogger texture
             const froggerMaterial = new THREE.MeshLambertMaterial({
                 map: froggerTexture,
                 transparent: true,
-                alphaTest: 0.1
+                alphaTest: 0.1,
+                // Enhanced lighting to eliminate shadows
+                emissive: 0x004400,
+                emissiveIntensity: 0.3
             });
             
-            // Create geometry for the frogger sprites
-            const froggerGeometry = new THREE.PlaneGeometry(2, 2);
+            // Even larger geometry for better visibility
+            const froggerGeometry = new THREE.PlaneGeometry(4, 4);
             
-            // Left side frogger
+            // Both frogs facing forward (no rotation)
             const leftFrogger = new THREE.Mesh(froggerGeometry, froggerMaterial.clone());
-            leftFrogger.position.set(-8, 2, -16); // Left side of GFL building
-            leftFrogger.rotation.y = Math.PI / 4; // Slight angle for visual interest
+            leftFrogger.position.set(-8, 1, -16);
+            // No rotation - facing forward
             
-            // Right side frogger
             const rightFrogger = new THREE.Mesh(froggerGeometry, froggerMaterial.clone());
-            rightFrogger.position.set(8, 2, -16); // Right side of GFL building
-            rightFrogger.rotation.y = -Math.PI / 4; // Opposite angle
+            rightFrogger.position.set(8, 1, -16);
+            // No rotation - facing forward
+            
+            // Disable shadow casting/receiving to eliminate shadows
+            leftFrogger.castShadow = false;
+            leftFrogger.receiveShadow = false;
+            rightFrogger.castShadow = false;
+            rightFrogger.receiveShadow = false;
             
             this.decorations.push(leftFrogger);
             this.decorations.push(rightFrogger);
             this.scene.add(leftFrogger);
             this.scene.add(rightFrogger);
             
-            console.log('✅ Static frogger decorations created');
+            console.log('✅ Forward-facing, shadow-free frogger decorations created');
             
         } catch (error) {
             console.warn('⚠️ Could not load frogger.png texture:', error);
-            console.log('Creating placeholder frogger decorations instead...');
-            
-            // Create simple green cube placeholders if texture fails to load
             this.createPlaceholderFroggers();
         }
     }
     
-    // Helper method to load textures with promise
     loadTexture(url) {
         return new Promise((resolve, reject) => {
             this.textureLoader.load(
@@ -499,31 +564,33 @@ export class Level {
         });
     }
     
-    // Fallback method for placeholder froggers
     createPlaceholderFroggers() {
-        console.log('🔄 Creating placeholder frogger decorations...');
+        console.log('🔄 Creating forward-facing placeholder frogger decorations...');
         
         const placeholderMaterial = new THREE.MeshLambertMaterial({ 
             color: 0x00ff00,
-            emissive: 0x002200
+            emissive: 0x004400,
+            emissiveIntensity: 0.3
         });
         
-        const placeholderGeometry = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+        const placeholderGeometry = new THREE.BoxGeometry(3, 3, 3);
         
-        // Left placeholder
         const leftPlaceholder = new THREE.Mesh(placeholderGeometry, placeholderMaterial);
         leftPlaceholder.position.set(-8, 1.5, -16);
+        leftPlaceholder.castShadow = false;
+        leftPlaceholder.receiveShadow = false;
         
-        // Right placeholder
         const rightPlaceholder = new THREE.Mesh(placeholderGeometry, placeholderMaterial.clone());
         rightPlaceholder.position.set(8, 1.5, -16);
+        rightPlaceholder.castShadow = false;
+        rightPlaceholder.receiveShadow = false;
         
         this.decorations.push(leftPlaceholder);
         this.decorations.push(rightPlaceholder);
         this.scene.add(leftPlaceholder);
         this.scene.add(rightPlaceholder);
         
-        console.log('✅ Placeholder frogger decorations created');
+        console.log('✅ Forward-facing placeholder frogger decorations created');
     }
     
     createRoadVehicles() {
@@ -566,13 +633,12 @@ export class Level {
         console.log(`✅ ${this.obstacles.length} vehicles created`);
     }
     
-    // ✅ STABLE RIVER LOGS - Fixed physics, positioned for new layout
     createStableRiverLogs() {
-        console.log('🪵 Creating stable river logs with fixed physics...');
+        console.log('🪵 Creating stable river logs...');
         
-        const riverLanes = [-12, -10, -8, -6, -4]; // Adjusted for new river position
+        const riverLanes = [-12, -10, -8, -6, -4];
         const laneDirections = [-1, 1, -1, 1, -1];
-        const laneSpeeds = [1.0, 0.8, 1.2, 0.9, 1.1]; // Slower, more predictable speeds
+        const laneSpeeds = [1.0, 0.8, 1.2, 0.9, 1.1];
         
         riverLanes.forEach((z, laneIndex) => {
             const direction = laneDirections[laneIndex];
@@ -583,7 +649,7 @@ export class Level {
                 const log = new Log(this.scene);
                 log.create();
                 
-                const spacing = 14; // More spaced out for easier gameplay
+                const spacing = 14;
                 const extendedBounds = this.screenWidth/2 + 10;
                 const startX = direction > 0 ? 
                     -extendedBounds + (i * spacing) : 
@@ -591,34 +657,33 @@ export class Level {
                 
                 log.setPosition(startX, 0.1, z);
                 log.setVelocity(direction * speed, 0, 0);
-                
-                // ✅ MARK AS STABLE LOG for special physics handling
                 log.isStableLog = true;
                 
                 this.obstacles.push(log);
             }
         });
         
-        console.log('✅ Stable logs created with improved physics');
+        console.log('✅ Stable logs created');
     }
     
+    // 5. Enhanced corner buildings to fill blue gaps
     createCornerBuildings() {
-        console.log('🏢 Creating corner buildings...');
+        console.log('🏢 Creating enhanced corner buildings to fill gaps...');
         
         const cornerBuildings = [
-            // Far corners - pushed way back
-            { x: -25, z: -30, width: 8, height: 25, depth: 8, material: 'building1' },
-            { x: 25, z: -30, width: 8, height: 22, depth: 8, material: 'building3' },
-            { x: -25, z: 30, width: 10, height: 28, depth: 8, material: 'building2' },
-            { x: 25, z: 30, width: 10, height: 24, depth: 8, material: 'building3' },
+            // Back corners - larger to fill blue gaps
+            { x: -35, z: -30, width: 12, height: 25, depth: 12, material: 'building1' },
+            { x: 35, z: -30, width: 12, height: 22, depth: 12, material: 'building3' },
+            { x: -35, z: 30, width: 14, height: 28, depth: 12, material: 'building2' },
+            { x: 35, z: 30, width: 14, height: 24, depth: 12, material: 'building3' },
             
-            // Side buildings
-            { x: -35, z: -15, width: 6, height: 20, depth: 6, material: 'building1' },
-            { x: -35, z: 0, width: 6, height: 24, depth: 6, material: 'building2' },
-            { x: -35, z: 15, width: 6, height: 18, depth: 6, material: 'building3' },
-            { x: 35, z: -15, width: 6, height: 22, depth: 6, material: 'building3' },
-            { x: 35, z: 0, width: 6, height: 26, depth: 6, material: 'building1' },
-            { x: 35, z: 15, width: 6, height: 19, depth: 6, material: 'building2' }
+            // Additional buildings to completely fill corner gaps
+            { x: -45, z: -20, width: 8, height: 20, depth: 8, material: 'building1' },
+            { x: -45, z: 0, width: 8, height: 24, depth: 8, material: 'building2' },
+            { x: -45, z: 20, width: 8, height: 18, depth: 8, material: 'building3' },
+            { x: 45, z: -20, width: 8, height: 22, depth: 8, material: 'building3' },
+            { x: 45, z: 0, width: 8, height: 26, depth: 8, material: 'building1' },
+            { x: 45, z: 20, width: 8, height: 19, depth: 8, material: 'building2' }
         ];
         
         cornerBuildings.forEach(building => {
@@ -634,7 +699,7 @@ export class Level {
             this.scene.add(buildingMesh);
         });
         
-        console.log('✅ Corner buildings created');
+        console.log('✅ Enhanced corner buildings created - gaps filled');
     }
     
     addSimpleWindows(building, width, height, depth) {
@@ -660,44 +725,11 @@ export class Level {
         }
     }
     
-    createCornerTrees() {
-        console.log('🌳 Creating corner trees...');
-        
-        const cornerTreePositions = [
-            [-20, 0, 25], [20, 0, 25],
-            [-20, 0, -20], [20, 0, -20],
-            [-28, 0, 10], [28, 0, 10],
-            [-28, 0, -10], [28, 0, -10]
-        ];
-        
-        cornerTreePositions.forEach(pos => {
-            const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.3, 2, 8);
-            const trunk = new THREE.Mesh(trunkGeometry, this.sharedMaterials.trunk);
-            trunk.position.set(pos[0], 1, pos[2]);
-            trunk.castShadow = true;
-            
-            const foliageGeometry = new THREE.SphereGeometry(1.5, 8, 6);
-            const foliage = new THREE.Mesh(foliageGeometry, this.sharedMaterials.foliage);
-            foliage.position.set(pos[0], 2.8, pos[2]);
-            foliage.scale.set(1, 0.8, 1);
-            foliage.castShadow = true;
-            
-            this.decorations.push(trunk);
-            this.decorations.push(foliage);
-            this.scene.add(trunk);
-            this.scene.add(foliage);
-        });
-        
-        console.log('✅ Corner trees created');
-    }
-    
-    // ✅ ENHANCED UPDATE with stable log physics and frogger animations
     update(deltaTime) {
-        // Update obstacles with stable log handling
+        // Update obstacles
         this.obstacles.forEach(obstacle => {
             obstacle.update(deltaTime);
             
-            // Reset position for continuous flow
             const resetDistance = this.screenWidth/2 + 15;
             
             if (obstacle.velocity.x > 0 && obstacle.position.x > resetDistance) {
@@ -716,20 +748,17 @@ export class Level {
             }
         });
         
-        // ✅ NEW: Animate frogger decorations with subtle bobbing
+        // Animate frogger decorations with subtle bobbing
         this.decorations.forEach(decoration => {
-            // Check if this is a frogger decoration by looking for texture
             if (decoration.material && decoration.material.map && 
                 decoration.material.map.image && 
                 decoration.material.map.image.src && 
                 decoration.material.map.image.src.includes('frogger.png')) {
                 
-                // Subtle bobbing animation
                 const bobAmount = 0.1;
                 const bobSpeed = 2;
                 const originalY = decoration.userData.originalY || decoration.position.y;
                 
-                // Store original Y position if not already stored
                 if (!decoration.userData.originalY) {
                     decoration.userData.originalY = decoration.position.y;
                 }
@@ -747,15 +776,3 @@ export class Level {
         return this.goals;
     }
 }
-
-// ✅ ENHANCED IMPROVEMENTS SUMMARY:
-// 1. Subtle gray boundaries (0.5 width, 30% opacity vs thick obvious bars)
-// 2. Safe median sidewalk strip between road and river
-// 3. Stable log physics (marked with isStableLog flag for Game.js to handle)
-// 4. Goal building area at top instead of lily pads
-// 5. Slower, more predictable log speeds
-// 6. Better spacing for easier gameplay
-// 7. ✅ NEW: Static frogger.png images on left and right sides of GFL building
-// 8. ✅ NEW: Decorative trees at bottom corners near gray boundary lines
-// 9. ✅ NEW: Subtle bobbing animation for frogger decorations
-// 10. ✅ NEW: Graceful fallback to placeholder cubes if texture fails to load
