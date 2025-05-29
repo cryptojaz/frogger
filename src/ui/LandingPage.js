@@ -24,12 +24,12 @@ export class LandingPage {
             <div id="landing-page" class="landing-overlay">
                 <div class="landing-content">
                     <div class="landing-image-container">
-                        <img id="landing-image" src="" alt="3D Frogger" />
+                        <img id="landing-image" src="" alt="3D Green Froggy" />
                         <!-- Removed image indicator counter -->
                     </div>
                     
                     <div class="landing-info">
-                        <h1 class="landing-title">MODERN 3D FROGGER</h1>
+                        <h1 class="landing-title"> GREEN FROGGY</h1>
                         <p class="landing-subtitle">Cross the road without getting hit!</p>
                         
                         <div class="landing-controls">
@@ -78,7 +78,7 @@ export class LandingPage {
                 <div id="info-modal" class="info-modal hidden">
                     <div class="info-modal-content">
                         <div class="info-modal-header">
-                            <h2>🐸 Modern 3D Frogger - Game Info</h2>
+                            <h2>🐸 Modern 3D Green Froggy - Game Info</h2>
                             <button id="close-info-modal" class="close-btn">✖</button>
                         </div>
                         

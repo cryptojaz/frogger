@@ -8,7 +8,7 @@ let ui = null;
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🎮 Modern 3D Frogger starting...');
+    console.log('🎮 Modern 3D Green Froggy starting...');
     
     // Check if we should show landing page first
     const skipLanding = new URLSearchParams(window.location.search).get('skipLanding') === 'true';

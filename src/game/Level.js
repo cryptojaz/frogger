@@ -817,8 +817,8 @@ createFullWidthRoadSection() {
         lanePositions.forEach((z, laneIndex) => {
             const direction = laneDirections[laneIndex];
             const speed = laneSpeeds[laneIndex];
-            const numVehicles = 8; // Back to normal
-            const spacing = 18;    // Back to normal
+            const numVehicles = 7; // Back to normal
+            const spacing = 17;    // Back to normal
             
             for (let i = 0; i < numVehicles; i++) {
                 let vehicle;
