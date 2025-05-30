@@ -245,56 +245,59 @@ async debugJumpToLevel2() {
         console.log(`🐸 Level ${level}: ${this.totalFrogsNeeded} frogs needed`);
     }
 
-    // ✅ UPDATED RESTART - Reset frog progress
-    async restartGame() {
-        console.log('🔄 Simple restart - resetting all frog progress...');
-        
-        // Reset game state
-        this.isPlaying = false;
-        this.gameOver = false;
-        this.levelComplete = false;
-        this.score = 0;
-        this.lives = 3;
-        this.currentLevel = 1;
-        
-        // Reset frog rescue progress
-        this.frogsRescued = 0;
-        this.totalFrogsNeeded = 4; // Level 1 default
-        this.clearSavedFrogImages();
-        
-        // Clear riding state on restart
-        if (this.player) {
-            this.player.ridingLog = null;
-            this.player.setPosition(0, 0, 17);
-        }
-        
-        // Simple level disposal and reload
-        if (this.level) {
-            this.level.dispose();
-            this.level = null;
-        }
-        
-        // Load fresh level
-        await this.loadLevel(1);
-        
-        // ✅ SWITCH BACK TO LEVEL 1 MUSIC
-        if (this.audioManager) {
-            console.log('🎵 Switching back to Level 1 music on restart');
-            this.audioManager.switchToLevelMusic(1, 500, 200);
-        }
-        
-        // Update UI
-        this.ui.updateScore(this.score);
-        this.ui.updateLives(this.lives);
-        this.ui.updateLevel(this.currentLevel);
-        this.ui.updateFrogProgress(this.frogsRescued, this.totalFrogsNeeded);
-        this.ui.hideGameOver();
-        
-        this.startGame();
-        
-        console.log('✅ Simple restart complete with frog progress reset');
-    }
+    // In Game.js - Replace the restartGame() method:
 
+async restartGame() {
+    console.log('🔄 Restarting game - staying on current level...');
+    
+    // ✅ FIXED: Store current level before reset
+    const currentLevel = this.currentLevel; // Save the level we're on
+    
+    // Reset game state but keep the level
+    this.isPlaying = false;
+    this.gameOver = false;
+    this.levelComplete = false;
+    this.score = 0;
+    this.lives = 3;
+    // ✅ DON'T RESET LEVEL: this.currentLevel = 1; // REMOVED THIS LINE
+    
+    // Reset frog rescue progress
+    this.frogsRescued = 0;
+    this.setFrogCountForLevel(currentLevel); // ✅ Set correct frog count for current level
+    this.clearSavedFrogImages();
+    
+    // Clear riding state on restart
+    if (this.player) {
+        this.player.ridingLog = null;
+        this.player.setPosition(0, 0, 17);
+    }
+    
+    // Simple level disposal and reload
+    if (this.level) {
+        this.level.dispose();
+        this.level = null;
+    }
+    
+    // ✅ FIXED: Reload the CURRENT level, not level 1
+    await this.loadLevel(currentLevel);
+    
+    // ✅ FIXED: Start the correct level music
+    if (this.audioManager) {
+        console.log(`🎵 Restarting Level ${currentLevel} music`);
+        this.audioManager.switchToLevelMusic(currentLevel, 500, 200);
+    }
+    
+    // Update UI
+    this.ui.updateScore(this.score);
+    this.ui.updateLives(this.lives);
+    this.ui.updateLevel(this.currentLevel);
+    this.ui.updateFrogProgress(this.frogsRescued, this.totalFrogsNeeded);
+    this.ui.hideGameOver();
+    
+    this.startGame();
+    
+    console.log(`✅ Restarted on Level ${currentLevel} with ${this.totalFrogsNeeded} frogs needed`);
+}
 
     async loadLevel(levelNumber) {
         try {

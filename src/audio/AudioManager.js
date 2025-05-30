@@ -8,6 +8,10 @@ export class AudioManager {
         this.isInitialized = false;
         this.userInteracted = false;
         
+           // ✅ NEW: Autoplay handling
+    this.pendingMusic = null;
+    this.autoplayListenerAdded = false;
+    
         // Audio context for better control
         this.audioContext = null;
         this.gainNode = null;
@@ -131,43 +135,91 @@ export class AudioManager {
         }
     }
     
-    // ✅ ENHANCED: Support for level-specific music
-    playMusic(name = 'background') {
-        if (!this.isInitialized || this.isMuted || !this.sounds[name]) {
-            console.warn(`🎵 Cannot play music '${name}': ${!this.isInitialized ? 'not initialized' : this.isMuted ? 'muted' : 'sound not found'}`);
-            return;
+// In AudioManager.js - Replace the playMusic() method:
+
+playMusic(name = 'background') {
+    if (!this.isInitialized || this.isMuted || !this.sounds[name]) {
+        console.warn(`🎵 Cannot play music '${name}': ${!this.isInitialized ? 'not initialized' : this.isMuted ? 'muted' : 'sound not found'}`);
+        return;
+    }
+    
+    try {
+        // ✅ FIXED: Always enable audio context first
+        this.enableAudioContext();
+        
+        // Stop current music
+        this.stopMusic();
+        
+        const music = this.sounds[name];
+        music.currentTime = 0;
+        music.volume = this.musicVolume;
+        
+        // ✅ FIXED: Better error handling for production autoplay policy
+        const playPromise = music.play();
+        
+        if (playPromise !== undefined) {
+            playPromise
+                .then(() => {
+                    this.currentMusic = music;
+                    console.log(`🎵 ${name} music started successfully`);
+                })
+                .catch(error => {
+                    console.warn(`🎵 Music autoplay blocked for ${name}:`, error.message);
+                    
+                    // ✅ NEW: Store the music to play after user interaction
+                    this.pendingMusic = { name, music };
+                    
+                    // ✅ NEW: Set up one-time click listener to enable music
+                    if (!this.autoplayListenerAdded) {
+                        this.setupAutoplayUnblock();
+                    }
+                });
         }
         
-        try {
-            // Enable audio context on first play attempt
-            this.enableAudioContext();
+    } catch (error) {
+        console.warn(`Failed to play music ${name}:`, error);
+    }
+}
+
+// ✅ NEW: Add method to handle autoplay unblocking
+setupAutoplayUnblock() {
+    this.autoplayListenerAdded = true;
+    
+    const enableMusicOnInteraction = () => {
+        console.log('🎵 User interaction detected - enabling music...');
+        
+        // Enable audio context
+        this.enableAudioContext();
+        
+        // Play pending music if any
+        if (this.pendingMusic) {
+            console.log(`🎵 Playing pending music: ${this.pendingMusic.name}`);
             
-            // Stop current music
-            this.stopMusic();
-            
-            const music = this.sounds[name];
-            music.currentTime = 0;
-            music.volume = this.musicVolume;
-            
-            // Play with proper error handling
-            const playPromise = music.play();
-            
+            const playPromise = this.pendingMusic.music.play();
             if (playPromise !== undefined) {
                 playPromise
                     .then(() => {
-                        this.currentMusic = music;
-                        console.log(`🎵 ${name} music started`);
+                        this.currentMusic = this.pendingMusic.music;
+                        console.log(`🎵 ${this.pendingMusic.name} music started after user interaction`);
+                        this.pendingMusic = null;
                     })
-                    .catch(error => {
-                        console.warn(`Music play failed for ${name}:`, error);
-                        // Don't set currentMusic if play failed
-                    });
+                    .catch(e => console.warn('Music still failed after interaction:', e));
             }
-            
-        } catch (error) {
-            console.warn(`Failed to play music ${name}:`, error);
         }
-    }
+        
+        // Remove listeners after first interaction
+        document.removeEventListener('click', enableMusicOnInteraction);
+        document.removeEventListener('keydown', enableMusicOnInteraction);
+        document.removeEventListener('touchstart', enableMusicOnInteraction);
+    };
+    
+    // Listen for any user interaction
+    document.addEventListener('click', enableMusicOnInteraction, { once: true });
+    document.addEventListener('keydown', enableMusicOnInteraction, { once: true });
+    document.addEventListener('touchstart', enableMusicOnInteraction, { once: true });
+    
+    console.log('🎵 Autoplay unblock listeners added - music will start on first user interaction');
+}
     
     // ✅ NEW: Play level-specific music
     playLevelMusic(levelNumber) {
