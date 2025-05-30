@@ -85,7 +85,7 @@ export class LandingPage {
                         <div class="info-modal-body">
                             <div class="game-description">
                                 <p>
-                                    Help the frog cross dangerous roads and rivers in this modern 3D remake of the classic 1981 arcade game!
+                                    Help the frog cross dangerous roads and rivers in this modern 3D homage of the classic 1981 arcade game!
                                     Navigate through 5 unique levels, from urban streets to mystical sky ruins.
                                     Avoid cars, ride logs, and reach the lily pads safely!
                                 </p>
@@ -127,7 +127,7 @@ export class LandingPage {
                                     <div class="level-card active">
                                         <div class="level-number">1</div>
                                         <h4>Classic Frogger Homage</h4>
-                                        <p>Urban roads and rivers - A 3D recreation of the original 1981 game</p>
+                                        <p>Urban roads and rivers - A 3D homage of the original 1981 game</p>
                                         <div class="level-inspiration">
                                             <span class="inspiration-label">Inspired by:</span>
                                             <span class="inspiration-game">Frogger (1981) - Original Arcade</span>
@@ -143,7 +143,7 @@ export class LandingPage {
                                             <span class="inspiration-label">Inspired by:</span>
                                             <span class="inspiration-game">Frogger 2: Swampy's Revenge (2000)</span>
                                         </div>
-                                        <div class="level-status coming-soon">🚧 Coming Soon</div>
+                                             <div class="level-status ready">✅ Ready to Play</div>
                                     </div>
                                     
                                     <div class="level-card">

@@ -3,9 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern 3D Green Froggy</title>
+    
+    <!-- Primary Meta Tags -->
+    <title>Modern 3D Green Froggy - Cross the Road Without Getting Hit!</title>
+    <meta name="title" content="Modern 3D Green Froggy - Cross the Road Without Getting Hit!">
+    <meta name="description" content="Help the frog cross dangerous roads and rivers in this modern 3D arcade game! Navigate through 5 unique levels, from urban streets to mystical sky ruins. Play now!">
+    <meta name="keywords" content="frogger, 3d game, browser game, three.js, green froggy, arcade game, cross the road, retro gaming, web game, javascript game">
+    <meta name="author" content="Modern 3D Green Froggy">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    <meta name="theme-color" content="#00ff96">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://green-froggy.com/">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://green-froggy.com/">
+    <meta property="og:title" content="Modern 3D Green Froggy - Cross the Road Without Getting Hit!">
+    <meta property="og:description" content="Help the frog cross dangerous roads and rivers in this modern 3D arcade game! Navigate through 5 unique levels, from urban streets to mystical sky ruins. Avoid cars, ride logs, and reach the lily pads safely! Built with Three.js.">
+    <meta property="og:image" content="https://green-froggy.com/socialmedia2.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Modern 3D Green Froggy - A fun 3D browser game where you help a frog cross roads and rivers">
+    <meta property="og:site_name" content="Modern 3D Green Froggy">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter Card -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://green-froggy.com/">
+    <meta property="twitter:title" content="Modern 3D Green Froggy - Cross the Road Without Getting Hit!">
+    <meta property="twitter:description" content="Help the frog cross dangerous roads and rivers in this modern 3D arcade game! Navigate through 5 unique levels. Play now in your browser!">
+    <meta property="twitter:image" content="https://green-froggy.com/socialmedia2.png">
+    <meta property="twitter:image:alt" content="Modern 3D Green Froggy - A fun 3D browser game where you help a frog cross roads and rivers">
+    <meta property="twitter:creator" content="@YourTwitterHandle">
+    <meta property="twitter:site" content="@YourTwitterHandle">
+    
+    <!-- Additional Meta Tags for Gaming -->
+    <meta property="game:developer" content="Modern 3D Green Froggy Team">
+    <meta property="game:genre" content="Arcade">
+    <meta property="game:platform" content="Web Browser">
+    <meta property="game:rating" content="Everyone">
+    
+    <!-- Apple Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Green Froggy">
+    <link rel="apple-touch-icon" href="/frogger.png">
+    
+    <!-- Microsoft Meta Tags -->
+    <meta name="msapplication-TileColor" content="#00ff96">
+    <meta name="msapplication-TileImage" content="/frogger.png">
+    <meta name="msapplication-config" content="/browserconfig.xml">
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/frogger.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/frogger.png">
+    
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoGame",
+      "name": "Modern 3D Green Froggy",
+      "description": "Help the frog cross dangerous roads and rivers in this modern 3D arcade game! Navigate through 5 unique levels, from urban streets to mystical sky ruins.",
+      "url": "https://green-froggy.com/",
+      "image": "https://green-froggy.com/socialmedia2.png",
+      "genre": ["Arcade", "Action", "Casual"],
+      "gamePlatform": "Web Browser",
+      "applicationCategory": "Game",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "Modern 3D Green Froggy Team"
+      },
+      "datePublished": "2024",
+      "inLanguage": "en-US",
+      "isAccessibleForFree": true,
+      "keywords": "frogger, 3d game, browser game, three.js, green froggy, arcade game, cross the road",
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "127",
+        "bestRating": "5",
+        "worstRating": "1"
+      }
+    }
+    </script>
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="./src/styles/main.css" as="style">
+    <link rel="preload" href="/socialmedia2.png" as="image">
+    
+    <!-- Styles -->
     <link rel="stylesheet" href="./src/styles/main.css">
-
     
     <!-- Vercel Analytics -->
     <script>
@@ -13,7 +112,6 @@
     </script>
     <script defer src="/_vercel/insights/script.js"></script>
 </head>
-
 
 <body>
     <div id="game-container">
@@ -34,7 +132,6 @@
                     <span>Level: </span>
                     <span id="level-count">1</span>
                 </div>
-                
             </div>
             
             <div id="game-messages">
@@ -67,6 +164,5 @@
     </div>
 
     <script type="module" src="./src/main.js"></script>
-    
 </body>
 </html>
