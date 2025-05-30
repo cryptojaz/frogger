@@ -18,20 +18,37 @@ export class AudioManager {
     async initializeAudio() {
         try {
             // Don't create AudioContext until user interaction
-            // Load both music tracks
-            await this.loadMusic('landing', './audio/PatriotFrog.mp3');      // 🎵 NEW: Landing page music
-            await this.loadMusic('background', './audio/FeelingFroggish.mp3'); // 🎵 Game music
+            // Load all music tracks with proper paths
+            await this.loadMusic('landing', this.getAudioPath('PatriotFrog.mp3'));      // 🎵 Landing page music
+            await this.loadMusic('background', this.getAudioPath('FeelingFroggish.mp3')); // 🎵 Level 1 music
+            await this.loadMusic('level2', this.getAudioPath('Level2song.mp3'));        // 🎵 NEW: Level 2 music
             
             // Load SFX
-            await this.loadSFX('jump', './audio/jump.mp3');
-            await this.loadSFX('lose', './audio/lose.mp3');
-            await this.loadSFX('levelfinish', './audio/levelfinish.mp3');
+            await this.loadSFX('jump', this.getAudioPath('jump.mp3'));
+            await this.loadSFX('lose', this.getAudioPath('lose.mp3'));
+            await this.loadSFX('levelfinish', this.getAudioPath('levelfinish.mp3'));
             
             this.isInitialized = true;
-            console.log('🎵 Audio system initialized with both landing and game music');
+            console.log('🎵 Audio system initialized with Level 2 music support');
             
         } catch (error) {
             console.warn('Audio initialization failed:', error);
+        }
+    }
+    
+    // ✅ NEW: Get proper audio path for both dev and production
+    getAudioPath(filename) {
+        // Check if we're in development or production
+        const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const baseUrl = window.location.origin;
+        
+        // For Vite dev server, audio files are in public/audio/
+        // For production, they should be in the root audio/ directory
+        if (isDev) {
+            return `${baseUrl}/audio/${filename}`;
+        } else {
+            // Production path - adjust based on your deployment structure
+            return `${baseUrl}/audio/${filename}`;
         }
     }
     
@@ -114,7 +131,7 @@ export class AudioManager {
         }
     }
     
-    // 🎵 ENHANCED: Support for different music tracks
+    // ✅ ENHANCED: Support for level-specific music
     playMusic(name = 'background') {
         if (!this.isInitialized || this.isMuted || !this.sounds[name]) {
             console.warn(`🎵 Cannot play music '${name}': ${!this.isInitialized ? 'not initialized' : this.isMuted ? 'muted' : 'sound not found'}`);
@@ -150,6 +167,25 @@ export class AudioManager {
         } catch (error) {
             console.warn(`Failed to play music ${name}:`, error);
         }
+    }
+    
+    // ✅ NEW: Play level-specific music
+    playLevelMusic(levelNumber) {
+        let musicName;
+        
+        switch(levelNumber) {
+            case 1:
+                musicName = 'background'; // FeelingFroggish.mp3
+                break;
+            case 2:
+                musicName = 'level2'; // Level2song.mp3
+                break;
+            default:
+                musicName = 'background'; // Fallback to Level 1 music
+        }
+        
+        console.log(`🎵 Playing music for Level ${levelNumber}: ${musicName}`);
+        this.playMusic(musicName);
     }
     
     stopMusic() {
@@ -245,7 +281,43 @@ export class AudioManager {
         }, stepTime);
     }
     
-    // 🎵 NEW: Smooth transition between music tracks
+    // ✅ ENHANCED: Smooth transition between level music
+    switchToLevelMusic(levelNumber, fadeOutDuration = 800, fadeInDelay = 300) {
+        let musicName;
+        
+        switch(levelNumber) {
+            case 1:
+                musicName = 'background';
+                break;
+            case 2:
+                musicName = 'level2';
+                break;
+            default:
+                musicName = 'background';
+        }
+        
+        if (!this.sounds[musicName]) {
+            console.warn(`Cannot switch to music for Level ${levelNumber}: track '${musicName}' not found`);
+            return;
+        }
+        
+        console.log(`🎵 Switching to Level ${levelNumber} music: ${musicName}`);
+        
+        // Fade out current music
+        if (this.currentMusic) {
+            this.fadeMusic(0, fadeOutDuration);
+            
+            // After fade out, start new music
+            setTimeout(() => {
+                this.playMusic(musicName);
+            }, fadeOutDuration + fadeInDelay);
+        } else {
+            // No current music, just start new one
+            this.playMusic(musicName);
+        }
+    }
+    
+    // 🎵 Smooth transition between music tracks (kept for compatibility)
     switchMusic(newTrackName, fadeOutDuration = 500, fadeInDelay = 200) {
         if (!this.sounds[newTrackName]) {
             console.warn(`Cannot switch to music '${newTrackName}': track not found`);
@@ -281,7 +353,7 @@ export class AudioManager {
         };
     }
     
-    // 🎵 NEW: Get current track name for debugging
+    // Get current track name for debugging
     getCurrentTrackName() {
         if (!this.currentMusic) return null;
         

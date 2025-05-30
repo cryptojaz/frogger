@@ -155,7 +155,6 @@ export class Level {
         console.log('✅ Refined city created');
     }
     
-    // ===== LEVEL 2: JUNGLE SWAMP =====
     async createLevel2_JungleSwamp() {
         console.log('🌿 Creating Jungle Swamp level');
         
@@ -178,9 +177,259 @@ export class Level {
         this.createJungleTrees();
         this.createVineDecorations();
         
+        // ✅ ADD: InfoWarsPepe decorations for Level 2
+        await this.createInfoWarsPepeDecorations();
+        
+           // ✅ NEW: Add AlexJones decorations
+    await this.createAlexJonesDecorations();
+
+    await this.createAlexJones2Decorations();
         console.log('✅ Jungle Swamp created with faster gameplay');
     }
+
+
+    // ✅ UPDATED: Try different approaches for dogesolider.png
+    async createInfoWarsPepeDecorations() {
+        // Try multiple possible filenames
+        const possibleFilenames = ['/dogesolider.png', '/dogesoldier.png', '/DogeSoldier.png', '/dogesolider.jpg'];
+        
+        for (const filename of possibleFilenames) {
+            try {
+                console.log(`🐕 Attempting to load ${filename}...`);
+                const dogeTexture = await this.loadTexture(filename);
+                
+                // ✅ VIBRANT IMAGE SETTINGS: Same as other images
+                dogeTexture.colorSpace = THREE.SRGBColorSpace;
+                dogeTexture.generateMipmaps = false;
+                dogeTexture.minFilter = THREE.LinearFilter;
+                dogeTexture.magFilter = THREE.LinearFilter;
+                
+                const dogeMaterial = new THREE.MeshBasicMaterial({
+                    map: dogeTexture,
+                    transparent: true,
+                    alphaTest: 0.1,
+                    side: THREE.DoubleSide,
+                    toneMapped: false,
+                    opacity: 1.0
+                });
+                
+                const dogeGeometry = new THREE.PlaneGeometry(4, 4);
+                // Left DogeSoldier (by jungle temple)
+                const leftDoge = new THREE.Mesh(dogeGeometry, dogeMaterial.clone());
+                leftDoge.position.set(-8, 2, -14);
+                leftDoge.castShadow = false;
+                leftDoge.receiveShadow = false;
+                // Right DogeSoldier (by jungle temple)
+                const rightDoge = new THREE.Mesh(dogeGeometry, dogeMaterial.clone());
+                rightDoge.position.set(8, 2, -14);
+                rightDoge.castShadow = false;
+                rightDoge.receiveShadow = false;
+                this.decorations.push(leftDoge);
+                this.decorations.push(rightDoge);
+                this.scene.add(leftDoge);
+                this.scene.add(rightDoge);
+                
+                console.log(`✅ Successfully loaded and added DogeSoldier decorations using ${filename}`);
+                return; // Success! Exit the function
+                
+            } catch (error) {
+                console.warn(`❌ Failed to load ${filename}:`, error.message);
+                continue; // Try next filename
+            }
+        }
+        
+        // If all filenames failed, use placeholder
+        console.error('❌ All DogeSoldier image attempts failed, using placeholder');
+        this.createPlaceholderInfoWarsPepes();
+    }
+
+    // ✅ FIXED: Placeholder if dogesolider.png fails to load
+    createPlaceholderInfoWarsPepes() {
+        const placeholderMaterial = new THREE.MeshLambertMaterial({ 
+            color: 0xffd700, // ✅ CHANGED: Gold color for Doge theme
+            emissive: 0x444400,
+            emissiveIntensity: 0.3
+        });
+        
+        const placeholderGeometry = new THREE.BoxGeometry(3, 3, 3);
+        
+        const leftPlaceholder = new THREE.Mesh(placeholderGeometry, placeholderMaterial);
+        leftPlaceholder.position.set(-8, 1.5, -14);
+        leftPlaceholder.castShadow = false;
+        leftPlaceholder.receiveShadow = false;
+        
+        const rightPlaceholder = new THREE.Mesh(placeholderGeometry, placeholderMaterial.clone());
+        rightPlaceholder.position.set(8, 1.5, -14);
+        rightPlaceholder.castShadow = false;
+        rightPlaceholder.receiveShadow = false;
+        
+        this.decorations.push(leftPlaceholder);
+        this.decorations.push(rightPlaceholder);
+        this.scene.add(leftPlaceholder);
+        this.scene.add(rightPlaceholder);
+        
+        console.log('✅ Added placeholder DogeSoldier decorations (gold cubes)');
+    }
+        // In Level.js - Replace the createAlexJonesDecorations() method:
+
+async createAlexJonesDecorations() {
+    // Try multiple possible filenames for alexjones.png
+    const possibleFilenames = ['/alexjones.png', '/AlexJones.png', '/alex-jones.png', '/alex_jones.png'];
     
+    for (const filename of possibleFilenames) {
+        try {
+            console.log(`📢 Attempting to load ${filename}...`);
+            const alexTexture = await this.loadTexture(filename);
+            
+            // ✅ VIBRANT IMAGE SETTINGS: Same as other images
+            alexTexture.colorSpace = THREE.SRGBColorSpace;
+            alexTexture.generateMipmaps = false;
+            alexTexture.minFilter = THREE.LinearFilter;
+            alexTexture.magFilter = THREE.LinearFilter;
+            
+            const alexMaterial = new THREE.MeshBasicMaterial({
+                map: alexTexture,
+                transparent: true,
+                alphaTest: 0.1,
+                side: THREE.DoubleSide,
+                toneMapped: false,
+                opacity: 1.0
+            });
+            
+            // ✅ BIGGER SIZE: 80% bigger than original 4x4
+            const alexSize = 4 * 1.8; // 4 * 1.8 = 7.2 (80% bigger)
+            const alexGeometry = new THREE.PlaneGeometry(alexSize, alexSize);
+            
+            // ✅ SINGLE SIDE: Only right side of temple
+            const rightAlex = new THREE.Mesh(alexGeometry, alexMaterial);
+            rightAlex.position.set(-25, 4, -14); // Right side only
+            rightAlex.castShadow = false;
+            rightAlex.receiveShadow = false;
+            
+            this.decorations.push(rightAlex);
+            this.scene.add(rightAlex);
+            
+            console.log(`✅ Successfully added single AlexJones decoration (80% bigger) using ${filename}`);
+            return; // Success! Exit the function
+            
+        } catch (error) {
+            console.warn(`❌ Failed to load ${filename}:`, error.message);
+            continue; // Try next filename
+        }
+    }
+    
+    // If all filenames failed, use placeholder
+    console.error('❌ All AlexJones image attempts failed, using placeholder');
+    this.createPlaceholderAlexJones();
+}
+
+// ✅ UPDATED PLACEHOLDER: Single side and bigger
+createPlaceholderAlexJones() {
+    const placeholderMaterial = new THREE.MeshLambertMaterial({ 
+        color: 0xff6600, // Orange color for Alex Jones theme
+        emissive: 0x442200,
+        emissiveIntensity: 0.3
+    });
+    
+    // ✅ BIGGER PLACEHOLDER: 80% bigger
+    const placeholderSize = 3 * 1.8; // 3 * 1.8 = 5.4 (80% bigger)
+    const placeholderGeometry = new THREE.BoxGeometry(placeholderSize, placeholderSize, placeholderSize);
+    
+    // ✅ SINGLE SIDE: Only right side
+    const rightPlaceholder = new THREE.Mesh(placeholderGeometry, placeholderMaterial);
+    rightPlaceholder.position.set(12, 1.5, -14); // Right side only
+    rightPlaceholder.castShadow = false;
+    rightPlaceholder.receiveShadow = false;
+    
+    this.decorations.push(rightPlaceholder);
+    this.scene.add(rightPlaceholder);
+    
+    console.log('✅ Added single placeholder AlexJones decoration (80% bigger, orange cube)');
+}
+
+// In Level.js - Add this NEW method after createAlexJonesDecorations():
+
+async createAlexJones2Decorations() {
+    // Try multiple possible filenames for alexjones2.png
+    const possibleFilenames = ['/alexjones2.png', '/AlexJones2.png', '/alex-jones2.png', '/alex_jones2.png'];
+    
+    for (const filename of possibleFilenames) {
+        try {
+            console.log(`📢 Attempting to load second AlexJones: ${filename}...`);
+            const alex2Texture = await this.loadTexture(filename);
+            
+            // ✅ VIBRANT IMAGE SETTINGS: Same as other images
+            alex2Texture.colorSpace = THREE.SRGBColorSpace;
+            alex2Texture.generateMipmaps = false;
+            alex2Texture.minFilter = THREE.LinearFilter;
+            alex2Texture.magFilter = THREE.LinearFilter;
+            
+            const alex2Material = new THREE.MeshBasicMaterial({
+                map: alex2Texture,
+                transparent: true,
+                alphaTest: 0.1,
+                side: THREE.DoubleSide,
+                toneMapped: false,
+                opacity: 1.0
+            });
+            
+            // ✅ SAME SIZE: 80% bigger than original 4x4 (to match the first one)
+            const alex2Size = 4 * 1.8; // 4 * 1.8 = 7.2 (80% bigger)
+            const alex2Geometry = new THREE.PlaneGeometry(alex2Size, alex2Size);
+            
+            // ✅ RIGHT SIDE: Mirror position of the moved alexjones.png
+            const rightAlex2 = new THREE.Mesh(alex2Geometry, alex2Material);
+            rightAlex2.position.set(25, 4, -14); // Right side - mirror of left side (-25)
+            rightAlex2.castShadow = false;
+            rightAlex2.receiveShadow = false;
+            
+            this.decorations.push(rightAlex2);
+            this.scene.add(rightAlex2);
+            
+            console.log(`✅ Successfully added AlexJones2 decoration (right side, 80% bigger) using ${filename}`);
+            return; // Success! Exit the function
+            
+        } catch (error) {
+            console.warn(`❌ Failed to load ${filename}:`, error.message);
+            continue; // Try next filename
+        }
+    }
+    
+    // If all filenames failed, use placeholder
+    console.error('❌ All AlexJones2 image attempts failed, using placeholder');
+    this.createPlaceholderAlexJones2();
+}
+
+// ✅ PLACEHOLDER for AlexJones2 if image fails
+createPlaceholderAlexJones2() {
+    const placeholderMaterial = new THREE.MeshLambertMaterial({ 
+        color: 0x0066ff, // ✅ BLUE color to distinguish from first AlexJones (orange)
+        emissive: 0x002244,
+        emissiveIntensity: 0.3
+    });
+    
+    // ✅ SAME SIZE: 80% bigger
+    const placeholderSize = 3 * 1.8; // 3 * 1.8 = 5.4 (80% bigger)
+    const placeholderGeometry = new THREE.BoxGeometry(placeholderSize, placeholderSize, placeholderSize);
+    
+    // ✅ RIGHT SIDE: Mirror position
+    const rightPlaceholder = new THREE.Mesh(placeholderGeometry, placeholderMaterial);
+    rightPlaceholder.position.set(25, 2, -14); // Right side position
+    rightPlaceholder.castShadow = false;
+    rightPlaceholder.receiveShadow = false;
+    
+    this.decorations.push(rightPlaceholder);
+    this.scene.add(rightPlaceholder);
+    
+    console.log('✅ Added placeholder AlexJones2 decoration (right side, 80% bigger, blue cube)');
+}
+
+// ✅ THEN ADD THIS CALL in createLevel2_JungleSwamp() method:
+// Find this section and add the new line:
+
+
+
+
     createJungleFoundation() {
         console.log('🌿 Creating jungle foundation...');
         
@@ -291,20 +540,107 @@ export class Level {
         temple.castShadow = true;
         temple.receiveShadow = true;
         
-        // Add temple decorations
-        this.addTempleDecorations(temple);
+        // ✅ REMOVED: Temple decorations (moss, pillars)
+        // this.addTempleDecorations(temple);
         
-        // Add temple glow
-        const templeGlowGeometry = new THREE.PlaneGeometry(8, 2);
-        const templeGlow = new THREE.Mesh(templeGlowGeometry, this.sharedMaterials.templeGlow);
-        templeGlow.position.set(0, -1, 2.01);
-        temple.add(templeGlow);
+        // ✅ NEW: Add InfoWarsSign instead of temple glow
+        this.addInfoWarsSign(temple);
         
         this.goals.push(temple);
         this.decorations.push(temple);
         this.scene.add(temple);
         
-        console.log('✅ Jungle temple area created');
+        console.log('✅ Clean jungle temple area created with InfoWarsSign');
+    }
+    
+    // ✅ ENHANCED: Try multiple approaches for infowarssign.png
+    async addInfoWarsSign(building) {
+        // Try multiple possible filenames and extensions
+        const possibleFilenames = [
+            '/infowarssign.png', '/InfoWarsSign.png', '/infowars-sign.png', 
+            '/infowars_sign.png', '/infowarssign.jpg', '/InfoWarsSign.jpg'
+        ];
+        
+        for (const filename of possibleFilenames) {
+            try {
+                console.log(`📋 Attempting to load InfoWars sign: ${filename}...`);
+                const infowarsSignTexture = await this.loadTexture(filename);
+                
+                // ✅ VIBRANT IMAGE SETTINGS: Same as other images
+                infowarsSignTexture.colorSpace = THREE.SRGBColorSpace;
+                infowarsSignTexture.generateMipmaps = false;
+                infowarsSignTexture.minFilter = THREE.LinearFilter;
+                infowarsSignTexture.magFilter = THREE.LinearFilter;
+                
+                const infowarsSignMaterial = new THREE.MeshBasicMaterial({
+                    map: infowarsSignTexture,
+                    transparent: true,
+                    alphaTest: 0.1,
+                    side: THREE.DoubleSide,
+                    toneMapped: false,
+                    opacity: 1.0
+                });
+                
+                // Size the image appropriately for the building front
+                const imageWidth = 12;   // Fits nicely on 12-unit wide building
+                const imageHeight = 6;  // Good proportions
+                const infowarsSignGeometry = new THREE.PlaneGeometry(imageWidth, imageHeight);
+                const infowarsSignImage = new THREE.Mesh(infowarsSignGeometry, infowarsSignMaterial);
+                
+                // Position on the front face of the building
+                infowarsSignImage.position.set(0, 0, 2.01); // Slightly in front of building face
+                infowarsSignImage.castShadow = false;
+                infowarsSignImage.receiveShadow = false;
+                
+                building.add(infowarsSignImage);
+                console.log(`✅ Successfully loaded InfoWarsSign using ${filename}`);
+                return; // Success! Exit the function
+                
+            } catch (error) {
+                console.warn(`❌ Failed to load ${filename}:`, error.message);
+                continue; // Try next filename
+            }
+        }
+        
+        // If all attempts failed, create text placeholder
+        console.error('❌ All InfoWarsSign image attempts failed, creating text placeholder');
+        this.createInfoWarsTextPlaceholder(building);
+    }
+    
+    // ✅ NEW: Text placeholder if image fails
+    createInfoWarsTextPlaceholder(building) {
+        // Create simple text geometry as fallback
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 512;
+        canvas.height = 256;
+        
+        // Fill with orange background
+        context.fillStyle = '#ff6600';
+        context.fillRect(0, 0, 512, 256);
+        
+        // Add white text
+        context.fillStyle = '#ffffff';
+        context.font = 'bold 48px Arial';
+        context.textAlign = 'center';
+        context.fillText('INFO WARS', 256, 128);
+        context.fillText('SIGN', 256, 180);
+        
+        // Create material from canvas
+        const texture = new THREE.CanvasTexture(canvas);
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: false
+        });
+        
+        const geometry = new THREE.PlaneGeometry(12, 6);
+        const placeholder = new THREE.Mesh(geometry, material);
+        placeholder.position.set(0, 0, 2.01);
+        placeholder.castShadow = false;
+        placeholder.receiveShadow = false;
+        
+        building.add(placeholder);
+        console.log('✅ Created InfoWars text placeholder');
     }
     
     addTempleDecorations(temple) {
@@ -330,34 +666,39 @@ export class Level {
         }
     }
     
-    // Enhanced vehicles with 1.5x speed multiplier
+    // Enhanced vehicles with 1.5x speed multiplier - FIXED LANE POSITIONS
     createJungleVehicles() {
-        console.log('🚗 Creating faster jungle vehicles...');
+        console.log('🚗 Creating faster jungle vehicles with custom textures...');
         
+
         const lanePositions = [13, 11, 9, 7, 5];
         const laneDirections = [1, -1, 1, -1, 1];
-        // 1.5x speed multiplier for jungle level
-        const laneSpeeds = [2.3, 3.0, 5.3, 6.0, 2.7]; // All speeds increased by 1.5x
-        
+        const laneSpeeds = [9.5, 4.0, 3.5, 5.0, 7.8];
+
+
         lanePositions.forEach((z, laneIndex) => {
             const direction = laneDirections[laneIndex];
             const speed = laneSpeeds[laneIndex];
-            const numVehicles = 4;
+            const numVehicles = 7; // Back to normal
+       
             
             for (let i = 0; i < numVehicles; i++) {
                 let vehicle;
                 const random = Math.random();
                 if (random < 0.35) {
-                    vehicle = new Cybertruck(this.scene);
+                    // ✅ Use AngryFrog instead of Cybertruck
+                    vehicle = new AngryFrogVehicle(this.scene);
                 } else if (random < 0.7) {
-                    vehicle = new Taxi(this.scene);
+                    // ✅ Use Protestor instead of Taxi
+                    vehicle = new ProtestorVehicle(this.scene);
                 } else {
-                    vehicle = new Bus(this.scene);
+                    // ✅ Use LeftyVan instead of Bus/Sportscar
+                    vehicle = new LeftyVanVehicle(this.scene);
                 }
                 
                 vehicle.create();
                 
-                const extendedSpacing = 15;
+                const extendedSpacing = 17;
                 const extendedBounds = this.screenWidth/2 + 10;
                 const startX = direction > 0 ? 
                     -extendedBounds + (i * extendedSpacing) : 
@@ -369,70 +710,88 @@ export class Level {
             }
         });
         
-        console.log(`✅ ${this.obstacles.length} faster jungle vehicles created`);
+        console.log(`✅ ${this.obstacles.length} faster jungle vehicles created with custom textures`);
     }
     
-    // Swamp obstacles: Crocodiles (dangerous) and Lily Pads (rideable)
+
+    // Add this temporary method to Level.js in the Level class
+// This creates red debug cubes to help you see exactly where the blue is visible
+
+createDebugBlueDetectors() {
+    console.log('🔍 Creating debug cubes to find blue sky areas...');
+    
+    // Create red debug cubes in the areas where blue might be visible
+    const debugPositions = [
+        // Top corners at various heights and distances
+        { x: 30, y: 5, z: 20 }, { x: 35, y: 5, z: 25 }, { x: 40, y: 5, z: 30 },
+        { x: 30, y: 8, z: 20 }, { x: 35, y: 8, z: 25 }, { x: 40, y: 8, z: 30 },
+        { x: 30, y: 12, z: 20 }, { x: 35, y: 12, z: 25 }, { x: 40, y: 12, z: 30 },
+        
+        { x: -30, y: 5, z: 20 }, { x: -35, y: 5, z: 25 }, { x: -40, y: 5, z: 30 },
+        { x: -30, y: 8, z: 20 }, { x: -35, y: 8, z: 25 }, { x: -40, y: 8, z: 30 },
+        { x: -30, y: 12, z: 20 }, { x: -35, y: 12, z: 25 }, { x: -40, y: 12, z: 30 },
+        
+        // Far corners
+        { x: 50, y: 5, z: 35 }, { x: 55, y: 8, z: 40 }, { x: 60, y: 12, z: 45 },
+        { x: -50, y: 5, z: 35 }, { x: -55, y: 8, z: 40 }, { x: -60, y: 12, z: 45 }
+    ];
+    
+    const debugMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Bright red
+    const debugGeometry = new THREE.BoxGeometry(2, 2, 2);
+    
+    debugPositions.forEach((pos, index) => {
+        const debugCube = new THREE.Mesh(debugGeometry, debugMaterial);
+        debugCube.position.set(pos.x, pos.y, pos.z);
+        debugCube.name = `debug_cube_${index}`;
+        
+        this.decorations.push(debugCube);
+        this.scene.add(debugCube);
+    });
+    
+    console.log('🔍 Added red debug cubes - wherever you see red, put bushes there!');
+    console.log('📋 Call level.removeDebugCubes() when done');
+}
+
+// Helper to remove debug cubes
+removeDebugCubes() {
+    this.decorations = this.decorations.filter(obj => {
+        if (obj.name && obj.name.startsWith('debug_cube_')) {
+            this.scene.remove(obj);
+            return false;
+        }
+        return true;
+    });
+    console.log('🧹 Debug cubes removed');
+}
+    // Swamp obstacles: ALL GATORS (rideable) - REVERSE ALL DIRECTIONS
     createSwampObstacles() {
-        console.log('🐊 Creating swamp obstacles...');
+        console.log('🐊 Creating swamp obstacles - ALL GATORS with ALL DIRECTIONS REVERSED...');
         
         const swampLanes = [-12, -10, -8, -6, -4];
-        const laneDirections = [-1, 1, -1, 1, -1];
+        const laneDirections = [1, -1, 1, -1, 1]; // ✅ REVERSED AGAIN: All gators go opposite way
         // 1.5x speed for swamp obstacles
-        const laneSpeeds = [3.8, 3.3, 1.8, 1.4, 1.7];
-        
+
+        const laneSpeeds = [4.5, 2.2, 5.2, 2.9, 4.1];
+
         swampLanes.forEach((z, laneIndex) => {
             const direction = laneDirections[laneIndex];
             const speed = laneSpeeds[laneIndex];
             
-            // Alternate between crocodiles and lily pads
-            if (laneIndex % 2 === 0) {
-                // Crocodile lanes (dangerous)
-                this.createCrocodileLane(z, direction, speed);
-            } else {
-                // Lily pad lanes (rideable)
-                this.createLilyPadLane(z, direction, speed);
-            }
+            // ✅ ALL lanes get gators now (rideable)
+            this.createGatorLane(z, direction, speed);
         });
         
-        console.log('✅ Swamp obstacles created with crocodiles and lily pads');
+        console.log('✅ Swamp obstacles created - ALL GATORS with ALL DIRECTIONS REVERSED (rideable)');
     }
     
-    createCrocodileLane(z, direction, speed) {
-        const numCrocs = 2; // Fewer crocodiles, more spacing
+    // ✅ RENAMED and UPDATED: All lanes use gators now
+    createGatorLane(z, direction, speed) {
+        const numGators = 5; // Same as lily pads
         
-        for (let i = 0; i < numCrocs; i++) {
-            const crocodile = new Crocodile(this.scene);
-            crocodile.create();
-            
-            const spacing = 20; // More spacing between dangerous crocodiles
-            const extendedBounds = this.screenWidth/2 + 10;
-            const startX = direction > 0 ? 
-                -extendedBounds + (i * spacing) : 
-                extendedBounds - (i * spacing);
-            
-            crocodile.setPosition(startX, 0.1, z);
-            crocodile.setVelocity(direction * speed, 0, 0);
-            crocodile.isRideable = false; // Crocodiles are dangerous!
-            crocodile.isSnapping = true; // Add snapping behavior
-            
-            this.obstacles.push(crocodile);
-        }
-    }
-    
-    createLilyPadLane(z, direction, speed) {
-        const numPads = 3;
-        
-        for (let i = 0; i < numPads; i++) {
-            // Create lily pad (using Log class but with different appearance)
-            const lilyPad = new Log(this.scene);
-            lilyPad.create();
-            
-            // Modify appearance to look like lily pad
-            if (lilyPad.mesh) {
-                lilyPad.mesh.scale.set(1, 0.3, 1.5); // Flatter, wider
-                lilyPad.mesh.material.color.setHex(0x2d5a2d); // Green lily pad color
-            }
+        for (let i = 0; i < numGators; i++) {
+            // ✅ ALL gators now (rideable like logs)
+            const gator = new GatorLog(this.scene);
+            gator.create();
             
             const spacing = 14;
             const extendedBounds = this.screenWidth/2 + 10;
@@ -440,17 +799,17 @@ export class Level {
                 -extendedBounds + (i * spacing) : 
                 extendedBounds - (i * spacing);
             
-            lilyPad.setPosition(startX, 0.1, z);
-            lilyPad.setVelocity(direction * speed, 0, 0);
-            lilyPad.isRideable = true; // Lily pads are safe to ride
-            lilyPad.type = 'lilypad';
+            gator.setPosition(startX, 0.1, z);
+            gator.setVelocity(direction * speed, 0, 0);
+            gator.isRideable = true; // All gators are rideable
+            gator.type = 'gator';
             
-            this.obstacles.push(lilyPad);
+            this.obstacles.push(gator);
         }
     }
     
     createJungleTrees() {
-        console.log('🌳 Creating dense jungle trees...');
+        console.log('🌳 Creating jungle trees and corner bushes...');
         
         const jungleTreePositions = [
             // Around starting area
@@ -467,19 +826,18 @@ export class Level {
             { x: -40, z: 0 }, { x: 40, z: 0 }, { x: -35, z: 25 }, { x: 35, z: 25 }
         ];
         
+        // Create trees
         jungleTreePositions.forEach((pos, index) => {
-            // Create larger jungle trees
             const trunkGeometry = new THREE.CylinderGeometry(0.4, 0.5, 4, 8);
             const trunk = new THREE.Mesh(trunkGeometry, this.sharedMaterials.trunk);
             trunk.position.set(pos.x, 2, pos.z);
             trunk.castShadow = true;
             
-            // Larger, denser foliage for jungle feel
             const foliageSize = 2.5 + (index % 4) * 0.3;
             const foliageGeometry = new THREE.SphereGeometry(foliageSize, 8, 6);
             const foliage = new THREE.Mesh(foliageGeometry, this.sharedMaterials.jungleFoliage);
             foliage.position.set(pos.x, 5.5, pos.z);
-            foliage.scale.set(1.2, 0.8, 1.2); // Wider, flatter jungle canopy
+            foliage.scale.set(1.2, 0.8, 1.2);
             foliage.castShadow = true;
             
             this.decorations.push(trunk);
@@ -488,43 +846,61 @@ export class Level {
             this.scene.add(foliage);
         });
         
-        console.log('✅ Dense jungle trees created');
+        // ✅ NEW: Create corner bushes to cover blue sky
+        this.createCornerBushes();
+        
+        console.log('✅ Jungle trees and corner bushes created');
     }
     
+    // In Level.js - Replace the createCornerBushes() method
+createCornerBushes() {
+    console.log('🌿 Creating comprehensive corner bushes to eliminate blue sky...');
+    
+    const bushPositions = [
+        // ✅ MASSIVE TOP RIGHT CORNER COVERAGE
+        { x: 35, z: 25 }, { x: 40, z: 25 }, { x: 45, z: 25 }, { x: 50, z: 25 }, { x: 55, z: 25 }, { x: 60, z: 25 },
+        { x: 35, z: 30 }, { x: 40, z: 30 }, { x: 45, z: 30 }, { x: 50, z: 30 }, { x: 55, z: 30 }, { x: 60, z: 30 },
+        { x: 35, z: 35 }, { x: 40, z: 35 }, { x: 45, z: 35 }, { x: 50, z: 35 }, { x: 55, z: 35 }, { x: 60, z: 35 },
+        { x: 35, z: 40 }, { x: 40, z: 40 }, { x: 45, z: 40 }, { x: 50, z: 40 }, { x: 55, z: 40 }, { x: 60, z: 40 },
+        { x: 35, z: 45 }, { x: 40, z: 45 }, { x: 45, z: 45 }, { x: 50, z: 45 }, { x: 55, z: 45 }, { x: 60, z: 45 },
+        { x: 35, z: 50 }, { x: 40, z: 50 }, { x: 45, z: 50 }, { x: 50, z: 50 }, { x: 55, z: 50 }, { x: 60, z: 50 },
+        
+        // ✅ MASSIVE TOP LEFT CORNER COVERAGE  
+        { x: -35, z: 25 }, { x: -40, z: 25 }, { x: -45, z: 25 }, { x: -50, z: 25 }, { x: -55, z: 25 }, { x: -60, z: 25 },
+        { x: -35, z: 30 }, { x: -40, z: 30 }, { x: -45, z: 30 }, { x: -50, z: 30 }, { x: -55, z: 30 }, { x: -60, z: 30 },
+        { x: -35, z: 35 }, { x: -40, z: 35 }, { x: -45, z: 35 }, { x: -50, z: 35 }, { x: -55, z: 35 }, { x: -60, z: 35 },
+        { x: -35, z: 40 }, { x: -40, z: 40 }, { x: -45, z: 40 }, { x: -50, z: 40 }, { x: -55, z: 40 }, { x: -60, z: 40 },
+        { x: -35, z: 45 }, { x: -40, z: 45 }, { x: -45, z: 45 }, { x: -50, z: 45 }, { x: -55, z: 45 }, { x: -60, z: 45 },
+        { x: -35, z: 50 }, { x: -40, z: 50 }, { x: -45, z: 50 }, { x: -50, z: 50 }, { x: -55, z: 50 }, { x: -60, z: 50 },
+        
+        // ✅ RIGHT EDGE COVERAGE
+        { x: 65, z: 10 }, { x: 65, z: 15 }, { x: 65, z: 20 }, { x: 65, z: 25 }, { x: 65, z: 30 }, { x: 65, z: 35 },
+        { x: 70, z: 15 }, { x: 70, z: 20 }, { x: 70, z: 25 }, { x: 70, z: 30 }, { x: 70, z: 35 }, { x: 70, z: 40 },
+        
+        // ✅ LEFT EDGE COVERAGE
+        { x: -65, z: 10 }, { x: -65, z: 15 }, { x: -65, z: 20 }, { x: -65, z: 25 }, { x: -65, z: 30 }, { x: -65, z: 35 },
+        { x: -70, z: 15 }, { x: -70, z: 20 }, { x: -70, z: 25 }, { x: -70, z: 30 }, { x: -70, z: 35 }, { x: -70, z: 40 }
+    ];
+    
+    bushPositions.forEach((pos) => {
+        // Create larger, taller bushes
+        const bushGeometry = new THREE.SphereGeometry(4, 8, 6);  // ✅ BIGGER: Increased from 3 to 4
+        const bush = new THREE.Mesh(bushGeometry, this.sharedMaterials.jungleFoliage);
+        bush.position.set(pos.x, 2.5, pos.z); // ✅ TALLER: Increased from 1.5 to 2.5
+        bush.scale.set(1.8, 0.8, 1.8); // ✅ WIDER: Increased from 1.5 to 1.8
+        bush.castShadow = true;
+        
+        this.decorations.push(bush);
+        this.scene.add(bush);
+    });
+    
+    console.log(`✅ Added ${bushPositions.length} bigger corner bushes to completely block blue sky`);
+}
+    
     createVineDecorations() {
-        console.log('🌿 Creating hanging vines...');
-        
-        const vinePositions = [
-            { x: -20, z: -10 }, { x: -15, z: -5 }, { x: -10, z: -15 },
-            { x: 20, z: -10 }, { x: 15, z: -5 }, { x: 10, z: -15 },
-            { x: -12, z: 8 }, { x: 12, z: 8 }, { x: 0, z: -25 }
-        ];
-        
-        vinePositions.forEach((pos) => {
-            // Create hanging vine
-            const vineGeometry = new THREE.CylinderGeometry(0.1, 0.15, 6, 6);
-            const vine = new THREE.Mesh(vineGeometry, this.sharedMaterials.vineGreen);
-            vine.position.set(pos.x, 3, pos.z);
-            vine.castShadow = true;
-            
-            // Add vine leaves
-            const leafGeometry = new THREE.SphereGeometry(0.3, 6, 4);
-            for (let i = 0; i < 3; i++) {
-                const leaf = new THREE.Mesh(leafGeometry, this.sharedMaterials.jungleFoliage);
-                leaf.position.set(
-                    Math.random() * 0.4 - 0.2,
-                    -1 - i * 1.5,
-                    Math.random() * 0.4 - 0.2
-                );
-                leaf.scale.set(0.8, 0.5, 0.8);
-                vine.add(leaf);
-            }
-            
-            this.decorations.push(vine);
-            this.scene.add(vine);
-        });
-        
-        console.log('✅ Hanging vines created');
+        console.log('🌿 Skipping vine decorations to remove sticks...');
+        // ✅ REMOVED: All vine creation code to eliminate the stick decorations
+        console.log('✅ Vine decorations skipped - no more sticks');
     }
     
     // ===== SHARED METHODS (used by both levels) =====
@@ -551,6 +927,7 @@ export class Level {
         
         console.log('✅ Subtle boundaries created');
     }
+    
     // ✅ SIMPLE CONTINUOUS SPAWNING: The correct algorithm
     update(deltaTime) {
         this.obstacles.forEach(obstacle => {
@@ -623,120 +1000,107 @@ export class Level {
         this.terrain.push(startGrass);
         this.scene.add(startGrass);
     }
-    
 
-    
-// In Level.js, update createLaneMarkings() to cover the new extended road:
-
-// In Level.js, replace the createLaneMarkings() method:
-
-createLaneMarkings() {
-    // Update center line to match new road position (Z=8)
-    const centerLineGeometry = new THREE.PlaneGeometry(this.screenWidth, 0.15);
-    const centerLine = new THREE.Mesh(centerLineGeometry, this.sharedMaterials.yellowLine);
-    centerLine.rotation.x = -Math.PI / 2;
-    centerLine.position.set(0, 0.02, 8); // Road center at Z=8
-    this.decorations.push(centerLine);
-    this.scene.add(centerLine);
-    
-    const dashGeometry = new THREE.PlaneGeometry(1.2, 0.12);
-    // FIXED: Keep lane markings ONLY on the road surface
-    // Road covers Z=1 to Z=15 (height=14, center=8), so lanes should be at Z=3,5,7,9,11,13
-    for (let lane = -2.5; lane <= 2.5; lane += 1) { // This creates lanes at Z=5.5,6.5,7.5,9.5,10.5
-        if (lane === 0) continue; // Skip center line
-        for (let i = -this.screenWidth/2; i < this.screenWidth/2; i += 3) {
-            const laneZ = 8 + lane * 2; // Calculate actual Z position
-            // Only create lane markings that are ON the road (Z=1 to Z=15)
-            if (laneZ >= 1 && laneZ <= 15) {
-                const dash = new THREE.Mesh(dashGeometry, this.sharedMaterials.whiteLine);
-                dash.rotation.x = -Math.PI / 2;
-                dash.position.set(i, 0.02, laneZ);
-                this.decorations.push(dash);
-                this.scene.add(dash);
+    createLaneMarkings() {
+        // Update center line to match new road position (Z=8)
+        const centerLineGeometry = new THREE.PlaneGeometry(this.screenWidth, 0.15);
+        const centerLine = new THREE.Mesh(centerLineGeometry, this.sharedMaterials.yellowLine);
+        centerLine.rotation.x = -Math.PI / 2;
+        centerLine.position.set(0, 0.02, 8); // Road center at Z=8
+        this.decorations.push(centerLine);
+        this.scene.add(centerLine);
+        
+        const dashGeometry = new THREE.PlaneGeometry(1.2, 0.12);
+        // FIXED: Keep lane markings ONLY on the road surface
+        // Road covers Z=1 to Z=15 (height=14, center=8), so lanes should be at Z=3,5,7,9,11,13
+        for (let lane = -2.5; lane <= 2.5; lane += 1) { // This creates lanes at Z=5.5,6.5,7.5,9.5,10.5
+            if (lane === 0) continue; // Skip center line
+            for (let i = -this.screenWidth/2; i < this.screenWidth/2; i += 3) {
+                const laneZ = 8 + lane * 2; // Calculate actual Z position
+                // Only create lane markings that are ON the road (Z=1 to Z=15)
+                if (laneZ >= 1 && laneZ <= 15) {
+                    const dash = new THREE.Mesh(dashGeometry, this.sharedMaterials.whiteLine);
+                    dash.rotation.x = -Math.PI / 2;
+                    dash.position.set(i, 0.02, laneZ);
+                    this.decorations.push(dash);
+                    this.scene.add(dash);
+                }
             }
         }
+        
+        console.log('✅ Lane markings fixed to stay only on road surface');
+    }
+
+    // 1. Make the river smaller and position it correctly (don't extend behind building)
+    createFullWidthRiverSection() {
+        const extendedRiverWidth = this.screenWidth + 20;
+        const riverGeometry = new THREE.PlaneGeometry(extendedRiverWidth, 12); // Back to 12 (was 18)
+        const river = new THREE.Mesh(riverGeometry, this.sharedMaterials.water);
+        river.rotation.x = -Math.PI / 2;
+        river.position.set(0, -0.05, -8); // Back to Z=-8 (was Z=-11)
+        this.terrain.push(river);
+        this.scene.add(river);
+        
+        console.log('✅ River positioned correctly - covers Z=-14 to Z=-2');
+    }
+
+    // 2. Move logs DOWN to be in the visible blue water area
+    createStableRiverLogs() {
+        // Move logs DOWN so they're in the blue water area visible near the street
+        const riverLanes = [-12, -10, -8, -6, -4]; // Back to original positions
+        const laneDirections = [-1, 1, -1, 1, -1];
+        const laneSpeeds = [4.0, 2.1, 5.0, 2.9, 4.0];
+        
+        riverLanes.forEach((z, laneIndex) => {
+            const direction = laneDirections[laneIndex];
+            const speed = laneSpeeds[laneIndex];
+            const numLogs = 6;
+            const spacing = 14;
+            
+            for (let i = 0; i < numLogs; i++) {
+                const log = new Log(this.scene);
+                log.create();
+                
+                const bounds = this.screenWidth/2 + 10;
+                const startX = direction > 0 ? 
+                    -bounds + (i * spacing) : 
+                    bounds - (i * spacing);
+                
+                log.setPosition(startX, 0.1, z);
+                log.setVelocity(direction * speed, 0, 0);
+                log.isStableLog = true;
+                
+                this.obstacles.push(log);
+            }
+        });
+        
+        console.log(`✅ Logs moved to correct positions: [${riverLanes.join(', ')}] - now in visible water area`);
     }
     
-    console.log('✅ Lane markings fixed to stay only on road surface');
-}
-
-// And update createStableRiverLogs() to move logs away from the new median position:
-
-// In Level.js, fix the river and log positions:
-
-// 1. Make the river smaller and position it correctly (don't extend behind building)
-createFullWidthRiverSection() {
-    const extendedRiverWidth = this.screenWidth + 20;
-    const riverGeometry = new THREE.PlaneGeometry(extendedRiverWidth, 12); // Back to 12 (was 18)
-    const river = new THREE.Mesh(riverGeometry, this.sharedMaterials.water);
-    river.rotation.x = -Math.PI / 2;
-    river.position.set(0, -0.05, -8); // Back to Z=-8 (was Z=-11)
-    this.terrain.push(river);
-    this.scene.add(river);
-    
-    console.log('✅ River positioned correctly - covers Z=-14 to Z=-2');
-}
-
-// 2. Move logs DOWN to be in the visible blue water area
-createStableRiverLogs() {
-    // Move logs DOWN so they're in the blue water area visible near the street
-    const riverLanes = [-12, -10, -8, -6, -4]; // Back to original positions
-    const laneDirections = [-1, 1, -1, 1, -1];
-    const laneSpeeds = [4.5, 2.2, 5.2, 2.9, 4.1];
-    
-    riverLanes.forEach((z, laneIndex) => {
-        const direction = laneDirections[laneIndex];
-        const speed = laneSpeeds[laneIndex];
-        const numLogs = 6;
-        const spacing = 14;
+    // 1. Make the median sidewalk smaller (move it down and make it narrower)
+    createSafeMedianStrip() {
+        const medianGeometry = new THREE.PlaneGeometry(this.screenWidth, 3); // Reduced from 6 to 3
+        const medianSidewalk = new THREE.Mesh(medianGeometry, this.sharedMaterials.sidewalk);
+        medianSidewalk.rotation.x = -Math.PI / 2;
+        medianSidewalk.position.set(0, 0.05, 0.5); // Moved down from Z=-2 to Z=-3.5
+        medianSidewalk.receiveShadow = true;
+        this.terrain.push(medianSidewalk);
+        this.scene.add(medianSidewalk);
         
-        for (let i = 0; i < numLogs; i++) {
-            const log = new Log(this.scene);
-            log.create();
-            
-            const bounds = this.screenWidth/2 + 10;
-            const startX = direction > 0 ? 
-                -bounds + (i * spacing) : 
-                bounds - (i * spacing);
-            
-            log.setPosition(startX, 0.1, z);
-            log.setVelocity(direction * speed, 0, 0);
-            log.isStableLog = true;
-            
-            this.obstacles.push(log);
-        }
-    });
-    
-    console.log(`✅ Logs moved to correct positions: [${riverLanes.join(', ')}] - now in visible water area`);
-}
-// In Level.js, update the createSafeMedianStrip() method:
+        console.log('✅ Sidewalk made smaller and moved down');
+    }
 
-// 1. Make the median sidewalk smaller (move it down and make it narrower)
-createSafeMedianStrip() {
-    const medianGeometry = new THREE.PlaneGeometry(this.screenWidth, 3); // Reduced from 6 to 3
-    const medianSidewalk = new THREE.Mesh(medianGeometry, this.sharedMaterials.sidewalk);
-    medianSidewalk.rotation.x = -Math.PI / 2;
-    medianSidewalk.position.set(0, 0.05, 0.5); // Moved down from Z=-2 to Z=-3.5
-    medianSidewalk.receiveShadow = true;
-    this.terrain.push(medianSidewalk);
-    this.scene.add(medianSidewalk);
-    
-    console.log('✅ Sidewalk made smaller and moved down');
-}
-
-// And extend the road UP to cover where the median used to be:
-createFullWidthRoadSection() {
-    const roadGeometry = new THREE.PlaneGeometry(this.screenWidth, 14); // Increase height to 14
-    const road = new THREE.Mesh(roadGeometry, this.sharedMaterials.road);
-    road.rotation.x = -Math.PI / 2;
-    road.position.set(0, 0, 8); // Move center up slightly to Z=8
-    road.receiveShadow = true;
-    this.terrain.push(road);
-    this.scene.add(road);
-    this.createLaneMarkings();
-}
-    
-
+    // And extend the road UP to cover where the median used to be:
+    createFullWidthRoadSection() {
+        const roadGeometry = new THREE.PlaneGeometry(this.screenWidth, 14); // Increase height to 14
+        const road = new THREE.Mesh(roadGeometry, this.sharedMaterials.road);
+        road.rotation.x = -Math.PI / 2;
+        road.position.set(0, 0, 8); // Move center up slightly to Z=8
+        road.receiveShadow = true;
+        this.terrain.push(road);
+        this.scene.add(road);
+        this.createLaneMarkings();
+    }
     
     // ✅ UPDATED: Use gflhq.png image instead of generated 3D letters, removed green glow
     createGoalBuildingArea() {
@@ -756,12 +1120,6 @@ createFullWidthRoadSection() {
         
         // ✅ NEW: Add gflhq.png image instead of 3D letters
         this.addGFLHQImage(goalBuilding);
-        
-        // ✅ REMOVED: Green glow box that was covering the building
-        // const goalGlowGeometry = new THREE.PlaneGeometry(8, 2);
-        // const goalGlow = new THREE.Mesh(goalGlowGeometry, this.sharedMaterials.goalGlow);
-        // goalGlow.position.set(0, -1, 2.01);
-        // goalBuilding.add(goalGlow);
         
         this.goals.push(goalBuilding);
         this.decorations.push(goalBuilding);
@@ -812,7 +1170,7 @@ createFullWidthRoadSection() {
     createRoadVehicles() {
         const lanePositions = [13, 11, 9, 7, 5];
         const laneDirections = [1, -1, 1, -1, 1];
-        const laneSpeeds = [9.5, 4.0, 3.5, 5.0, 7.8];
+        const laneSpeeds = [9.1, 3.5, 3.3, 5.0, 7.5];
         
         lanePositions.forEach((z, laneIndex) => {
             const direction = laneDirections[laneIndex];
@@ -961,6 +1319,7 @@ createFullWidthRoadSection() {
             this.scene.add(foliage);
         });
     }
+    
     async createEnhancedFroggerDecorations() {
         try {
             const pepeSoldierTexture = await this.loadTexture('/pepesoldier.png');
@@ -1049,6 +1408,33 @@ createFullWidthRoadSection() {
         this.scene.add(rightPlaceholder);
     }
     
+    createPlaceholderPepeSoldiers() {
+        const placeholderMaterial = new THREE.MeshLambertMaterial({ 
+            color: 0x00ff00,
+            emissive: 0x004400,
+            emissiveIntensity: 0.3
+        });
+        
+        const placeholderGeometry = new THREE.BoxGeometry(3, 3, 3);
+        
+        const leftPlaceholder = new THREE.Mesh(placeholderGeometry, placeholderMaterial);
+        leftPlaceholder.position.set(-8, 1.5, -14);
+        leftPlaceholder.castShadow = false;
+        leftPlaceholder.receiveShadow = false;
+        
+        const rightPlaceholder = new THREE.Mesh(placeholderGeometry, placeholderMaterial.clone());
+        rightPlaceholder.position.set(8, 1.5, -14);
+        rightPlaceholder.castShadow = false;
+        rightPlaceholder.receiveShadow = false;
+        
+        this.decorations.push(leftPlaceholder);
+        this.decorations.push(rightPlaceholder);
+        this.scene.add(leftPlaceholder);
+        this.scene.add(rightPlaceholder);
+        
+        console.log('✅ Added placeholder Pepe Soldier decorations');
+    }
+    
     addSimpleWindows(building, width, height, depth) {
         const windowRows = Math.floor(height / 3);
         const windowCols = Math.floor(width / 2);
@@ -1069,6 +1455,516 @@ createFullWidthRoadSection() {
                     building.add(window);
                 }
             }
+        }
+    }
+
+
+    
+// ✅ ADD these Level 2 vehicle classes at the END of Level.js (before the final closing brace):
+
+} // ← This is the END of the Level class
+
+// ===== LEVEL 2 VEHICLE CLASSES =====
+// ✅ PUT THE NEW VEHICLE CLASSES HERE - after the Level class but before the final export
+
+class AngryFrogVehicle {
+    constructor(scene) {
+        this.scene = scene;
+        this.type = 'angryfrog';
+        this.mesh = null;
+        this.position = new THREE.Vector3();
+        this.velocity = new THREE.Vector3();
+        this.speed = 1;
+        this.isRideable = false;
+        this.movingRight = true;
+    }
+    
+    create() {
+        this.createRoadVehicle();
+        if (this.mesh) {
+            this.scene.add(this.mesh);
+        }
+    }
+    
+    createRoadVehicle() {
+        console.log(`🛣️ Creating Level 2 AngryFrog vehicle`);
+        
+        const size = { width: 4.0, height: 2.0 }; // Same size as cybertruck
+        const geometry = new THREE.PlaneGeometry(size.width, size.height);
+        
+        // Load angryfrog.png texture
+        const texture = this.loadLevel2Texture('angryfrog.png');
+        
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            alphaTest: 0.1,
+            side: THREE.DoubleSide
+        });
+        
+        // ✅ REMOVED: Don't set fallback color - it tints the image!
+        // Let the PNG show its original colors
+        
+        this.mesh = new THREE.Mesh(geometry, material);
+        
+        // ✅ MATCH LEVEL 1: Use exact same rotation as Vehicle.js
+        this.mesh.rotation.x = -Math.PI;
+        this.mesh.rotation.y = 0;
+        this.mesh.rotation.z = Math.PI; // Back to Level 1 rotation
+        this.mesh.position.y = 5.0;
+        
+        console.log(`✅ AngryFrog vehicle created`);
+    }
+    
+    loadLevel2Texture(filename) {
+        const textureLoader = new THREE.TextureLoader();
+        
+        console.log(`🖼️ Loading Level 2 texture: ${filename}`);
+        
+        const texture = textureLoader.load(
+            filename,
+            (loadedTexture) => {
+                console.log(`✅ ${filename} texture loaded successfully`);
+                loadedTexture.wrapS = THREE.ClampToEdgeWrapping;
+                loadedTexture.wrapT = THREE.ClampToEdgeWrapping;
+                loadedTexture.minFilter = THREE.LinearFilter;
+                loadedTexture.magFilter = THREE.LinearFilter;
+                loadedTexture.flipY = false;
+            },
+            undefined,
+            (error) => {
+                console.error(`❌ Failed to load ${filename} texture:`, error);
+            }
+        );
+        
+        return texture;
+    }
+    
+    // Vehicle behavior methods (same as original Vehicle class)
+    setPosition(x, y, z) {
+        this.position.set(x, y, z);
+        if (this.mesh) {
+            this.mesh.position.set(x, 5.0, z);
+        }
+    }
+    
+    setVelocity(vx, vy, vz) {
+        this.velocity.set(vx, vy, vz);
+        this.speed = this.velocity.length();
+        this.movingRight = vx > 0;
+        this.updateRotationBasedOnMovement();
+    }
+    
+    updateRotationBasedOnMovement() {
+        if (!this.mesh || this.velocity.length() === 0) return;
+        
+        this.mesh.rotation.x = -Math.PI / 2;
+        this.mesh.rotation.y = 0;
+        
+        if (this.movingRight) {
+            // ✅ FIXED: Face right (forward direction)
+            this.mesh.rotation.z = -Math.PI;
+            this.mesh.rotation.y = -Math.PI;
+            this.mesh.rotation.y = -Math.PI;
+            this.mesh.scale.x = Math.abs(this.mesh.scale.x);
+        } else {
+            // ✅ FIXED: Face left (backward direction) 
+            this.mesh.rotation.z = Math.PI;
+            this.mesh.scale.x = Math.abs(this.mesh.scale.x);
+        }
+    }
+    
+    update(deltaTime) {
+        this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
+        if (this.mesh) {
+            this.mesh.position.x = this.position.x;
+            this.mesh.position.y = 5.0;
+            this.mesh.position.z = this.position.z;
+        }
+    }
+    
+    dispose() {
+        if (this.mesh) {
+            this.scene.remove(this.mesh);
+            if (this.mesh.material) {
+                if (this.mesh.material.map) this.mesh.material.map.dispose();
+                this.mesh.material.dispose();
+            }
+            if (this.mesh.geometry) this.mesh.geometry.dispose();
+            this.mesh = null;
+        }
+    }
+}
+
+// ✅ ADD: GatorLog class for Level 2 (replaces lily pads)
+class GatorLog {
+    constructor(scene) {
+        this.scene = scene;
+        this.type = 'gator';
+        this.mesh = null;
+        this.position = new THREE.Vector3();
+        this.velocity = new THREE.Vector3();
+        this.speed = 1;
+        this.isRideable = true; // Gators are rideable like logs
+        this.movingRight = true;
+    }
+    
+    create() {
+        console.log(`🐊 Creating Level 2 Gator log`);
+        
+        const size = { width: 8.0, height: 3.0 }; // ✅ BIGGER: Increased from 6x2 to 8x3
+        const geometry = new THREE.PlaneGeometry(size.width, size.height);
+        
+        const texture = this.loadGatorTexture('gator.png');
+        
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            alphaTest: 0.1,
+            side: THREE.DoubleSide
+        });
+        
+        this.mesh = new THREE.Mesh(geometry, material);
+        
+        // ✅ GATOR INITIAL ROTATION: Match Level 1 vehicles
+        this.mesh.rotation.x = -Math.PI / 2;  // Same as Vehicle.js CONFIG.rotation.baseX
+        this.mesh.rotation.y = 0;             // Same as Vehicle.js CONFIG.rotation.baseY  
+        this.mesh.rotation.z = -Math.PI;      // Same as Vehicle.js CONFIG.rotation.baseZ
+        this.mesh.position.y = 0.1;
+        
+        this.scene.add(this.mesh);
+        console.log(`✅ Bigger gator log created (8x3) with Level 1 rotation`);
+    }
+    
+    loadGatorTexture(filename) {
+        const textureLoader = new THREE.TextureLoader();
+        
+        console.log(`🐊 Loading gator texture: ${filename}`);
+        
+        const texture = textureLoader.load(
+            filename,
+            (loadedTexture) => {
+                console.log(`✅ ${filename} texture loaded successfully`);
+                loadedTexture.wrapS = THREE.ClampToEdgeWrapping;
+                loadedTexture.wrapT = THREE.ClampToEdgeWrapping;
+                loadedTexture.minFilter = THREE.LinearFilter;
+                loadedTexture.magFilter = THREE.LinearFilter;
+                loadedTexture.flipY = false;
+            },
+            undefined,
+            (error) => {
+                console.error(`❌ Failed to load ${filename} texture:`, error);
+            }
+        );
+        
+        return texture;
+    }
+    
+    setPosition(x, y, z) {
+        this.position.set(x, y, z);
+        if (this.mesh) {
+            this.mesh.position.set(x, 0.1, z);
+        }
+    }
+    
+    setVelocity(vx, vy, vz) {
+        this.velocity.set(vx, vy, vz);
+        this.speed = this.velocity.length();
+        this.movingRight = vx > 0;
+        this.updateRotationBasedOnMovement();
+    }
+    
+// In Level.js - Find the GatorLog class and replace updateRotationBasedOnMovement() method:
+
+updateRotationBasedOnMovement() {
+    if (!this.mesh || this.velocity.length() === 0) return;
+    
+    // ✅ GATOR DIRECTION FIX: Use different rotation logic than vehicles
+    this.mesh.rotation.x = -Math.PI / 2;
+    this.mesh.rotation.y = 0;
+    
+    if (this.movingRight) {
+        // Moving right: face right
+        this.mesh.rotation.z = -Math.PI;  // ✅ CHANGED: Was -Math.PI
+        this.mesh.rotation.y = -Math.PI;  // ✅ CHANGED: Was -Math.PI
+        this.mesh.scale.x = Math.abs(this.mesh.scale.x);
+    } else {
+        // Moving left: face left
+        this.mesh.rotation.z = Math.PI;  // ✅ CHANGED: Was -Math.PI
+        this.mesh.scale.x = Math.abs(this.mesh.scale.x);  // ✅ CHANGED: Don't flip scale
+    }
+}
+    
+    update(deltaTime) {
+        this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
+        if (this.mesh) {
+            this.mesh.position.x = this.position.x;
+            this.mesh.position.y = 0.1;
+            this.mesh.position.z = this.position.z;
+        }
+    }
+    
+    dispose() {
+        if (this.mesh) {
+            this.scene.remove(this.mesh);
+            if (this.mesh.material) {
+                if (this.mesh.material.map) this.mesh.material.map.dispose();
+                this.mesh.material.dispose();
+            }
+            if (this.mesh.geometry) this.mesh.geometry.dispose();
+            this.mesh = null;
+        }
+    }
+}
+
+class ProtestorVehicle {
+    constructor(scene) {
+        this.scene = scene;
+        this.type = 'protestor';
+        this.mesh = null;
+        this.position = new THREE.Vector3();
+        this.velocity = new THREE.Vector3();
+        this.speed = 1;
+        this.isRideable = false;
+        this.movingRight = true;
+    }
+    
+    create() {
+        this.createRoadVehicle();
+        if (this.mesh) {
+            this.scene.add(this.mesh);
+        }
+    }
+    
+    createRoadVehicle() {
+        console.log(`🛣️ Creating Level 2 Protestor vehicle`);
+        
+        const size = { width: 4.5, height: 3.0 }; // Same size as taxi
+        const geometry = new THREE.PlaneGeometry(size.width, size.height);
+        
+        const texture = this.loadLevel2Texture('protestor.png');
+        
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            alphaTest: 0.1,
+            side: THREE.DoubleSide
+        });
+        
+        // ✅ REMOVED: Don't set fallback color - it tints the image!
+        // Let the PNG show its original colors
+        
+        this.mesh = new THREE.Mesh(geometry, material);
+        
+        // ✅ MATCH LEVEL 1: Use exact same rotation as Vehicle.js
+        this.mesh.rotation.x = -Math.PI / 2;
+        this.mesh.rotation.y = 0;
+        this.mesh.rotation.z = Math.PI; // Back to Level 1 rotation
+        this.mesh.position.y = 5.0;
+        
+        console.log(`✅ Protestor vehicle created`);
+    }
+    
+    loadLevel2Texture(filename) {
+        const textureLoader = new THREE.TextureLoader();
+        
+        console.log(`🖼️ Loading Level 2 texture: ${filename}`);
+        
+        const texture = textureLoader.load(
+            filename,
+            (loadedTexture) => {
+                console.log(`✅ ${filename} texture loaded successfully`);
+                loadedTexture.wrapS = THREE.ClampToEdgeWrapping;
+                loadedTexture.wrapT = THREE.ClampToEdgeWrapping;
+                loadedTexture.minFilter = THREE.LinearFilter;
+                loadedTexture.magFilter = THREE.LinearFilter;
+                loadedTexture.flipY = false;
+            },
+            undefined,
+            (error) => {
+                console.error(`❌ Failed to load ${filename} texture:`, error);
+            }
+        );
+        
+        return texture;
+    }
+    
+    setPosition(x, y, z) {
+        this.position.set(x, y, z);
+        if (this.mesh) {
+            this.mesh.position.set(x, 5.0, z);
+        }
+    }
+    
+    setVelocity(vx, vy, vz) {
+        this.velocity.set(vx, vy, vz);
+        this.speed = this.velocity.length();
+        this.movingRight = vx > 0;
+        this.updateRotationBasedOnMovement();
+    }
+    
+    updateRotationBasedOnMovement() {
+        if (!this.mesh || this.velocity.length() === 0) return;
+        
+        // ✅ LEVEL 2 VEHICLE FIX: Use Vehicle.js CONFIG settings
+        this.mesh.rotation.x = -Math.PI / 2;  // CONFIG.rotation.baseX
+        this.mesh.rotation.y = 0;             // CONFIG.rotation.baseY
+        
+        if (this.movingRight) {
+            // Cars moving right: use Vehicle.js facingRightZ
+            this.mesh.rotation.z = -Math.PI;  // CONFIG.rotation.facingRightZ
+            this.mesh.scale.x = Math.abs(this.mesh.scale.x);
+        } else {
+            // Cars moving left: use Vehicle.js facingLeftZ  
+            this.mesh.rotation.z = -Math.PI;  // CONFIG.rotation.facingLeftZ
+            this.mesh.scale.x = -Math.abs(this.mesh.scale.x);
+        }
+    }
+    
+    update(deltaTime) {
+        this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
+        if (this.mesh) {
+            this.mesh.position.x = this.position.x;
+            this.mesh.position.y = 5.0;
+            this.mesh.position.z = this.position.z;
+        }
+    }
+    
+    dispose() {
+        if (this.mesh) {
+            this.scene.remove(this.mesh);
+            if (this.mesh.material) {
+                if (this.mesh.material.map) this.mesh.material.map.dispose();
+                this.mesh.material.dispose();
+            }
+            if (this.mesh.geometry) this.mesh.geometry.dispose();
+            this.mesh = null;
+        }
+    }
+}
+
+class LeftyVanVehicle {
+    constructor(scene) {
+        this.scene = scene;
+        this.type = 'leftyvan';
+        this.mesh = null;
+        this.position = new THREE.Vector3();
+        this.velocity = new THREE.Vector3();
+        this.speed = 1;
+        this.isRideable = false;
+        this.movingRight = true;
+    }
+    
+    create() {
+        this.createRoadVehicle();
+        if (this.mesh) {
+            this.scene.add(this.mesh);
+        }
+    }
+    
+    createRoadVehicle() {
+        console.log(`🛣️ Creating Level 2 LeftyVan vehicle`);
+        
+        const size = { width: 4.0, height: 2.0 }; // Same size as sportscar
+        const geometry = new THREE.PlaneGeometry(size.width, size.height);
+        
+        const texture = this.loadLevel2Texture('leftyvan.png');
+        
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            alphaTest: 0.1,
+            side: THREE.DoubleSide
+        });
+        
+        // ✅ REMOVED: Don't set fallback color - it tints the image!
+        // Let the PNG show its original colors
+        
+        this.mesh = new THREE.Mesh(geometry, material);
+        
+        // ✅ MATCH LEVEL 1: Use exact same rotation as Vehicle.js
+        this.mesh.rotation.x = -Math.PI / 2;
+        this.mesh.rotation.y = 0;
+        this.mesh.rotation.z = Math.PI; // Back to Level 1 rotation
+        this.mesh.position.y = 5.0;
+        
+        console.log(`✅ LeftyVan vehicle created`);
+    }
+    
+    loadLevel2Texture(filename) {
+        const textureLoader = new THREE.TextureLoader();
+        
+        console.log(`🖼️ Loading Level 2 texture: ${filename}`);
+        
+        const texture = textureLoader.load(
+            filename,
+            (loadedTexture) => {
+                console.log(`✅ ${filename} texture loaded successfully`);
+                loadedTexture.wrapS = THREE.ClampToEdgeWrapping;
+                loadedTexture.wrapT = THREE.ClampToEdgeWrapping;
+                loadedTexture.minFilter = THREE.LinearFilter;
+                loadedTexture.magFilter = THREE.LinearFilter;
+                loadedTexture.flipY = false;
+            },
+            undefined,
+            (error) => {
+                console.error(`❌ Failed to load ${filename} texture:`, error);
+            }
+        );
+        
+        return texture;
+    }
+    
+    setPosition(x, y, z) {
+        this.position.set(x, y, z);
+        if (this.mesh) {
+            this.mesh.position.set(x, 5.0, z);
+        }
+    }
+    
+    setVelocity(vx, vy, vz) {
+        this.velocity.set(vx, vy, vz);
+        this.speed = this.velocity.length();
+        this.movingRight = vx > 0;
+        this.updateRotationBasedOnMovement();
+    }
+    
+    updateRotationBasedOnMovement() {
+        if (!this.mesh || this.velocity.length() === 0) return;
+        
+        // ✅ MATCH LEVEL 1: Use exact same rotation logic as Vehicle.js
+        this.mesh.rotation.x = -Math.PI / 2;
+        this.mesh.rotation.y = 0;
+        
+        if (this.movingRight) {
+            // Cars moving right: use Level 1 rotation
+            this.mesh.rotation.z = -Math.PI;
+            this.mesh.scale.x = Math.abs(this.mesh.scale.x);
+        } else {
+            // Cars moving left: flip horizontally like Level 1
+            this.mesh.rotation.z = -Math.PI;
+            this.mesh.scale.x = -Math.abs(this.mesh.scale.x);
+        }
+    }
+    
+    update(deltaTime) {
+        this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
+        if (this.mesh) {
+            this.mesh.position.x = this.position.x;
+            this.mesh.position.y = 5.0;
+            this.mesh.position.z = this.position.z;
+        }
+    }
+    
+    dispose() {
+        if (this.mesh) {
+            this.scene.remove(this.mesh);
+            if (this.mesh.material) {
+                if (this.mesh.material.map) this.mesh.material.map.dispose();
+                this.mesh.material.dispose();
+            }
+            if (this.mesh.geometry) this.mesh.geometry.dispose();
+            this.mesh = null;
         }
     }
 }

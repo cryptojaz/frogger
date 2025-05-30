@@ -167,3 +167,21 @@ body {
         font-size: 1em;
     }
 }
+
+/* MINIMAL CSS CHANGES - Just add these at the END of main.css */
+
+/* ✅ ADD: Just a small hint for the level2 shortcut - doesn't change existing styles */
+.debug-hint {
+    font-size: 0.9rem;
+    color: #888888;
+    font-style: italic;
+    margin-top: 15px;
+    opacity: 0.7;
+}
+
+/* ✅ ADD: Mobile responsive tweak for the extra frog counter */
+@media (max-width: 768px) {
+    #hud {
+        flex-wrap: wrap; /* Allow wrapping if needed */
+    }
+}

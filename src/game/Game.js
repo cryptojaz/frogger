@@ -20,6 +20,8 @@ export class Game {
         this.currentLevel = 1;
         this.maxLevel = 5; // We have 5 levels planned
         
+        this.levelShortcutBuffer = ''; // ✅ NEW: For "level2" typing shortcut
+
         // ✅ NEW: Classic Frogger multi-frog system
         this.frogsRescued = 0; // Current frogs rescued in this level
         this.totalFrogsNeeded = 4; // Need 4 frogs to complete each level
@@ -56,6 +58,8 @@ export class Game {
             // Load initial level (Level 1 - Classic Frogger)
             await this.loadLevel(this.currentLevel);
             
+            this.setupLevel2Shortcut(); // ✅ NEW: Add this line to init() method
+
             // Create player
             this.setupPlayer();
             
@@ -158,6 +162,89 @@ export class Game {
         console.log('💡 Lighting setup complete');
     }
     
+
+    setupLevel2Shortcut() {
+        document.addEventListener('keydown', (event) => {
+            // Only during Level 1 gameplay
+            if (this.isPlaying && this.currentLevel === 1) {
+                // Add typed character to buffer
+                if (event.key.length === 1) {
+                    this.levelShortcutBuffer += event.key.toLowerCase();
+                    
+                    // Keep only last 6 characters
+                    if (this.levelShortcutBuffer.length > 6) {
+                        this.levelShortcutBuffer = this.levelShortcutBuffer.slice(-6);
+                    }
+                    
+                    // Check for "level2" sequence
+                    if (this.levelShortcutBuffer.includes('level2')) {
+                        console.log('🔧 Level 2 shortcut activated!');
+                        this.debugJumpToLevel2();
+                        this.levelShortcutBuffer = ''; // Clear buffer
+                    }
+                }
+            } else {
+                // Clear buffer when not in Level 1
+                this.levelShortcutBuffer = '';
+            }
+        });
+    }
+    // In Game.js - Replace the debugJumpToLevel2() method
+async debugJumpToLevel2() {
+    console.log('🚀 Jumping to Level 2 via shortcut...');
+    this.currentLevel = 2;
+    this.frogsRescued = 0;
+    this.totalFrogsNeeded = 5; // Level 2 has 5 frogs
+    this.clearSavedFrogImages();
+    
+    // ✅ FIXED: Stop current music completely before switching
+    if (this.audioManager) {
+        console.log('🛑 Stopping current music for Level 2 shortcut');
+        this.audioManager.stopMusic();
+        
+        // Wait a moment for clean stop, then start Level 2 music
+        setTimeout(() => {
+            console.log('🎵 Starting Level 2 music via shortcut');
+            this.audioManager.playLevelMusic(2);
+        }, 200);
+    }
+    
+    // Load Level 2
+    if (this.level) {
+        this.level.dispose();
+        this.level = null;
+    }
+    
+    await this.loadLevel(2);
+    
+    // Reset player
+    if (this.player) {
+        this.player.ridingLog = null;
+        this.player.setPosition(0, 0, 17);
+    }
+    
+    // Update UI
+    this.ui.updateLevel(this.currentLevel);
+    this.ui.updateFrogProgress(this.frogsRescued, this.totalFrogsNeeded);
+    
+    this.isPlaying = true;
+}
+
+
+    setFrogCountForLevel(level) {
+        switch(level) {
+            case 1:
+                this.totalFrogsNeeded = 4;
+                break;
+            case 2:
+                this.totalFrogsNeeded = 5; // Level 2 needs 5 frogs
+                break;
+            default:
+                this.totalFrogsNeeded = 4;
+        }
+        console.log(`🐸 Level ${level}: ${this.totalFrogsNeeded} frogs needed`);
+    }
+
     // ✅ UPDATED RESTART - Reset frog progress
     async restartGame() {
         console.log('🔄 Simple restart - resetting all frog progress...');
@@ -170,11 +257,12 @@ export class Game {
         this.lives = 3;
         this.currentLevel = 1;
         
-        // ✅ Reset frog rescue progress
+        // Reset frog rescue progress
         this.frogsRescued = 0;
+        this.totalFrogsNeeded = 4; // Level 1 default
         this.clearSavedFrogImages();
         
-        // ✅ Clear riding state on restart
+        // Clear riding state on restart
         if (this.player) {
             this.player.ridingLog = null;
             this.player.setPosition(0, 0, 17);
@@ -189,6 +277,12 @@ export class Game {
         // Load fresh level
         await this.loadLevel(1);
         
+        // ✅ SWITCH BACK TO LEVEL 1 MUSIC
+        if (this.audioManager) {
+            console.log('🎵 Switching back to Level 1 music on restart');
+            this.audioManager.switchToLevelMusic(1, 500, 200);
+        }
+        
         // Update UI
         this.ui.updateScore(this.score);
         this.ui.updateLives(this.lives);
@@ -200,7 +294,8 @@ export class Game {
         
         console.log('✅ Simple restart complete with frog progress reset');
     }
-    
+
+
     async loadLevel(levelNumber) {
         try {
             console.log(`🏗️ Loading level ${levelNumber}...`);
@@ -252,60 +347,75 @@ export class Game {
         }
     }
     
-    startGame() {
-        this.isPlaying = true;
-        this.gameOver = false;
-        this.levelComplete = false;
-        this.ui.hideStartScreen();
-        this.ui.showHUD();
-        
-        // Start background music if available
-        if (this.audioManager) {
-            this.audioManager.playMusic('background');
-        }
-        
-        // Update UI
-        this.ui.updateScore(this.score);
-        this.ui.updateLives(this.lives);
-        this.ui.updateLevel(this.currentLevel);
-        this.ui.updateFrogProgress(this.frogsRescued, this.totalFrogsNeeded);
-        
-        console.log('🎮 Game started! Rendering should begin...');
+// 1. UPDATE: startGame method to use level-specific music
+startGame() {
+    this.isPlaying = true;
+    this.gameOver = false;
+    this.levelComplete = false;
+    this.ui.hideStartScreen();
+    this.ui.showHUD();
+    
+    // ✅ UPDATED: Start level-specific music
+    if (this.audioManager) {
+        this.audioManager.playLevelMusic(this.currentLevel); // ✅ NEW: Level-specific music
     }
     
-    // ✅ UPDATED: Handle level progression with frog system
-    async nextLevel() {
-        if (this.currentLevel >= this.maxLevel) {
-            // Game completed!
-            this.endGame(true);
-            return;
-        }
-        
-        this.currentLevel++;
-        this.levelComplete = false;
-        
-        // ✅ Reset frog progress for new level
-        this.frogsRescued = 0;
-        this.clearSavedFrogImages();
-        
-        // Load next level
-        await this.loadLevel(this.currentLevel);
-        
-        // Reset player position and clear riding state
-        if (this.player) {
-            this.player.ridingLog = null;
-            this.player.setPosition(0, 0, 17);
-        }
-        
-        // Update UI
-        this.ui.updateLevel(this.currentLevel);
-        this.ui.updateFrogProgress(this.frogsRescued, this.totalFrogsNeeded);
-        this.ui.hideLevelComplete();
-        
-        this.isPlaying = true;
-        
-        console.log(`🆙 Advanced to level ${this.currentLevel} with fresh frog progress`);
+    // Update UI
+    this.ui.updateScore(this.score);
+    this.ui.updateLives(this.lives);
+    this.ui.updateLevel(this.currentLevel);
+    this.ui.updateFrogProgress(this.frogsRescued, this.totalFrogsNeeded);
+    
+    console.log(`🎮 Game started at Level ${this.currentLevel}! Rendering should begin...`);
+}
+
+// In Game.js - Replace the nextLevel() method
+async nextLevel() {
+    if (this.currentLevel >= this.maxLevel) {
+        // Game completed!
+        this.endGame(true);
+        return;
     }
+    
+    this.currentLevel++;
+    this.levelComplete = false;
+    
+    // Reset frog progress for new level
+    this.frogsRescued = 0;
+    this.clearSavedFrogImages();
+    
+    // Set appropriate frog count for new level
+    this.setFrogCountForLevel(this.currentLevel);
+    
+    // ✅ FIXED: Stop current music first, then switch after a delay
+    if (this.audioManager) {
+        console.log(`🎵 Stopping current music and switching to Level ${this.currentLevel}`);
+        this.audioManager.stopMusic();
+        
+        // Wait a moment then start new music
+        setTimeout(() => {
+            this.audioManager.playLevelMusic(this.currentLevel);
+        }, 500);
+    }
+    
+    // Load next level
+    await this.loadLevel(this.currentLevel);
+    
+    // Reset player position and clear riding state
+    if (this.player) {
+        this.player.ridingLog = null;
+        this.player.setPosition(0, 0, 17);
+    }
+    
+    // Update UI
+    this.ui.updateLevel(this.currentLevel);
+    this.ui.updateFrogProgress(this.frogsRescued, this.totalFrogsNeeded);
+    this.ui.hideLevelComplete();
+    
+    this.isPlaying = true;
+    
+    console.log(`🆙 Advanced to Level ${this.currentLevel} with ${this.totalFrogsNeeded} frogs needed`);
+}
     
     // ✅ ENHANCED MOVE PLAYER - Supports stable log physics
     movePlayer(dx, dy, dz) {
@@ -401,86 +511,93 @@ export class Game {
         this.checkWinCondition();
     }
     
-    // ✅ UPDATED COLLISION DETECTION for new level layout and stable log physics
-    checkCollisions() {
-        if (!this.level || !this.player) return;
+// ✅ UPDATED COLLISION DETECTION for Level 2 vehicles and gators
+checkCollisions() {
+    if (!this.level || !this.player) return;
+    
+    const playerPos = this.player.position;
+    const obstacles = this.level.getObstacles();
+    
+    // ✅ UPDATED GAME ZONES for new polished layout
+    const roadZone = playerPos.z >= 1 && playerPos.z <= 14;           // Road area
+    const safeMedianZone = playerPos.z >= -5 && playerPos.z <= 3;     // ✅ Wide safe median (6 units)
+    const waterZone = playerPos.z >= -12 && playerPos.z <= -2;        // ✅ Water area (adjusted for new positions)
+    const startZone = playerPos.z >= 14;                              // Starting grass
+    const goalZone = playerPos.z <= -13;                              // ✅ GFL goal building area
+    
+    if (waterZone) {
+        // ✅ STABLE LOG PHYSICS - Player must be on log or gator or drown
+        let onStableLog = false;
+        let ridingLog = null;
         
-        const playerPos = this.player.position;
-        const obstacles = this.level.getObstacles();
+        for (const obstacle of obstacles) {
+            // ✅ FIXED: Check for both logs and gators (Level 2)
+            if (obstacle.isRideable && (obstacle.type === 'log' || obstacle.type === 'gator')) {
+                const distance = playerPos.distanceTo(obstacle.position);
+                if (distance < 3.0) { // Generous collision area for easier riding
+                    onStableLog = true;
+                    ridingLog = obstacle;
+                    
+                    // ✅ NEW: Anchor frog to log but allow movement
+                    if (!this.player.ridingLog || this.player.ridingLog !== ridingLog) {
+                        // First time on this log - store relative position
+                        this.player.logOffset = this.player.position.x - obstacle.position.x;
+                        console.log(`🪵 Frog hopped onto ${obstacle.type} at offset: ${this.player.logOffset.toFixed(2)}`);
+                    }
+                    
+                    // Keep frog at same relative position on the log (this happens every frame)
+                    this.player.position.x = obstacle.position.x + this.player.logOffset;
+                    this.updatePlayerBounds();
+                    
+                    // Store riding state for input handling
+                    this.player.ridingLog = ridingLog;
+                    
+                    console.log(`🪵 Frog riding ${obstacle.type} at relative position`);
+                    break;
+                }
+            }
+        }
         
-        // ✅ UPDATED GAME ZONES for new polished layout
-        const roadZone = playerPos.z >= 1 && playerPos.z <= 14;           // Road area
-        const safeMedianZone = playerPos.z >= -5 && playerPos.z <= 3;     // ✅ Wide safe median (6 units)
-        const waterZone = playerPos.z >= -12 && playerPos.z <= -2;        // ✅ Water area (adjusted for new positions)
-        const startZone = playerPos.z >= 14;                              // Starting grass
-        const goalZone = playerPos.z <= -13;                              // ✅ GFL goal building area
+        if (!onStableLog) {
+            // Clear riding state
+            this.player.ridingLog = null;
+            console.log(`💀 Frog drowned in water at Z: ${playerPos.z.toFixed(1)}!`);
+            this.playerHit();
+            return;
+        }
         
-        if (waterZone) {
-            // ✅ STABLE LOG PHYSICS - Player must be on log or drown
-            let onStableLog = false;
-            let ridingLog = null;
-            
+    } else {
+        // ✅ CLEAR RIDING STATE when not in water
+        this.player.ridingLog = null;
+        
+        if (roadZone) {
+            // ✅ FIXED: Road collision detection for ALL vehicle types (Level 1 & 2)
             for (const obstacle of obstacles) {
-                if (obstacle.isRideable && obstacle.type === 'log') {
+                // Check for ALL dangerous vehicle types
+                const dangerousVehicles = [
+                    'cybertruck', 'taxi', 'sportscar',  // Level 1 vehicles
+                    'angryfrog', 'protestor', 'leftyvan' // Level 2 vehicles
+                ];
+                
+                if (!obstacle.isRideable && dangerousVehicles.includes(obstacle.type)) {
                     const distance = playerPos.distanceTo(obstacle.position);
-                    if (distance < 3.0) { // Generous collision area for easier riding
-                        onStableLog = true;
-                        ridingLog = obstacle;
-                        
-                        // ✅ NEW: Anchor frog to log but allow movement
-                        if (!this.player.ridingLog || this.player.ridingLog !== ridingLog) {
-                            // First time on this log - store relative position
-                            this.player.logOffset = this.player.position.x - obstacle.position.x;
-                            console.log(`🪵 Frog hopped onto log at offset: ${this.player.logOffset.toFixed(2)}`);
-                        }
-                        
-                        // Keep frog at same relative position on the log (this happens every frame)
-                        this.player.position.x = obstacle.position.x + this.player.logOffset;
-                        this.updatePlayerBounds();
-                        
-                        // Store riding state for input handling
-                        this.player.ridingLog = ridingLog;
-                        
-                        console.log(`🪵 Frog riding log at relative position`);
+                    if (distance < 1.8) {
+                        console.log(`💀 Frog hit by ${obstacle.type} on road!`);
+                        this.playerHit();
                         break;
                     }
                 }
             }
             
-            if (!onStableLog) {
-                // Clear riding state
-                this.player.ridingLog = null;
-                console.log(`💀 Frog drowned in water at Z: ${playerPos.z.toFixed(1)}!`);
-                this.playerHit();
-                return;
-            }
+        } else if (safeMedianZone || startZone || goalZone) {
+            // ✅ SAFE ZONES - no collision checks needed
+            //console.log(`✅ Frog in safe zone`);
             
         } else {
-            // ✅ CLEAR RIDING STATE when not in water
-            this.player.ridingLog = null;
-            
-            if (roadZone) {
-                // Road collision detection
-                for (const obstacle of obstacles) {
-                    if (!obstacle.isRideable && ['cybertruck', 'taxi', 'sportscar'].includes(obstacle.type)) {
-                        const distance = playerPos.distanceTo(obstacle.position);
-                        if (distance < 1.8) {
-                            console.log(`💀 Frog hit by ${obstacle.type} on road!`);
-                            this.playerHit();
-                            break;
-                        }
-                    }
-                }
-                
-            } else if (safeMedianZone || startZone || goalZone) {
-                // ✅ SAFE ZONES - no collision checks needed
-                //console.log(`✅ Frog in safe zone`);
-                
-            } else {
-                console.log(`⚠️ Frog in unknown zone at Z: ${playerPos.z.toFixed(1)}`);
-            }
+            console.log(`⚠️ Frog in unknown zone at Z: ${playerPos.z.toFixed(1)}`);
         }
     }
+}
     
     // ✅ UPDATED WIN CONDITION with multi-frog system
     checkWinCondition() {
@@ -551,58 +668,26 @@ export class Game {
         console.log('🔄 Reset for next frog rescue');
     }
     
-    // ✅ NEW: Add visual frog image to goal area
-    async addFrogImage() {
-        try {
-            const texture = await this.loadTexture('/gflmemer.png');
-            
-            const frogMaterial = new THREE.MeshLambertMaterial({
-                map: texture,
-                transparent: true,
-                alphaTest: 0.1
-            });
-            
-            const frogGeometry = new THREE.PlaneGeometry(2, 2);
-            const frogImage = new THREE.Mesh(frogGeometry, frogMaterial);
-            
-            // Position frogs in front of GFL building
-            const xPositions = [-6, -2, 2, 6]; // Spread across building front
-            const xPos = xPositions[this.frogsRescued - 1] || 0;
-            
-            frogImage.position.set(xPos, 1, -15);
-            frogImage.castShadow = false;
-            frogImage.receiveShadow = false;
-            
-            this.savedFrogImages.push(frogImage);
-            this.scene.add(frogImage);
-            
-            console.log(`✅ Added frog image ${this.frogsRescued} at position ${xPos}`);
-            
-        } catch (error) {
-            console.warn('⚠️ Could not load gflmemer.png, using placeholder');
-            this.addPlaceholderFrog();
-        }
-    }
 
-// ✅ VIBRANT PNG FIX: Force color saturation and proper orientation
+    // ✅ UPDATED: Use infowarspepe.png for Level 2 frog images
 async addFrogImage() {
     try {
-        const texture = await this.loadTexture('/gflmemer.png');
+        // ✅ Use different images based on level
+        const imageName = this.currentLevel === 2 ? '/infowarspepe.png' : '/gflmemer.png';
+        const texture = await this.loadTexture(imageName);
         
-        // ✅ TEXTURE SETTINGS: Force vibrant colors with correct orientation
+        // ✅ VIBRANT IMAGE SETTINGS: Same as other images
         texture.colorSpace = THREE.SRGBColorSpace;
         texture.generateMipmaps = false;
         texture.minFilter = THREE.LinearFilter;
         texture.magFilter = THREE.LinearFilter;
-        // ✅ REMOVED: flipY = false (was causing upside down image)
         
-        // ✅ VIBRANT MATERIAL: Boost saturation
         const frogMaterial = new THREE.MeshBasicMaterial({
             map: texture,
             transparent: true,
             alphaTest: 0.1,
             side: THREE.DoubleSide,
-            toneMapped: false,  // Prevents tone mapping that can wash out colors
+            toneMapped: false,
             opacity: 1.0
         });
         
@@ -611,7 +696,7 @@ async addFrogImage() {
         const frogGeometry = new THREE.PlaneGeometry(frogWidth, frogHeight);
         const frogImage = new THREE.Mesh(frogGeometry, frogMaterial);
         
-        const xPositions = [-6, -2, 2, 6];
+        const xPositions = [-6, -2, 2, 6, 0]; // Added center position for 5th frog
         const xPos = xPositions[this.frogsRescued - 1] || 0;
         
         frogImage.position.set(xPos, 1.5, -13);
@@ -621,30 +706,31 @@ async addFrogImage() {
         this.savedFrogImages.push(frogImage);
         this.scene.add(frogImage);
         
-        console.log(`✅ Added RIGHT-SIDE-UP vibrant frog image ${this.frogsRescued}`);
+        console.log(`✅ Added Level ${this.currentLevel} frog image ${this.frogsRescued} using ${imageName}`);
         
     } catch (error) {
-        console.warn('⚠️ Could not load gflmemer.png, using placeholder');
+        console.warn(`⚠️ Could not load frog image for Level ${this.currentLevel}, using placeholder`);
         this.addPlaceholderFrog();
     }
 }
 
-// ✅ SAME VIBRANT SETTINGS: Update saved frog images
+// ✅ UPDATED: Same logic for saved frog images
 async addSavedFrogImages() {
-    console.log(`🐸 Adding ${this.frogsRescued} saved frog images...`);
+    console.log(`🐸 Adding ${this.frogsRescued} saved frog images for Level ${this.currentLevel}...`);
     
     this.clearSavedFrogImages();
     
     for (let i = 0; i < this.frogsRescued; i++) {
         try {
-            const texture = await this.loadTexture('/gflmemer.png');
+            // ✅ Use different images based on level
+            const imageName = this.currentLevel === 2 ? '/infowarspepe.png' : '/gflmemer.png';
+            const texture = await this.loadTexture(imageName);
             
             // ✅ SAME VIBRANT TEXTURE SETTINGS with correct orientation
             texture.colorSpace = THREE.SRGBColorSpace;
             texture.generateMipmaps = false;
             texture.minFilter = THREE.LinearFilter;
             texture.magFilter = THREE.LinearFilter;
-            // ✅ REMOVED: flipY = false (was causing upside down image)
             
             const frogMaterial = new THREE.MeshBasicMaterial({
                 map: texture,
@@ -660,7 +746,7 @@ async addSavedFrogImages() {
             const frogGeometry = new THREE.PlaneGeometry(frogWidth, frogHeight);
             const frogImage = new THREE.Mesh(frogGeometry, frogMaterial);
             
-            const xPositions = [-6, -2, 2, 6];
+            const xPositions = [-6, -2, 2, 6, 0]; // Added center position for 5th frog
             const xPos = xPositions[i] || 0;
             
             frogImage.position.set(xPos, 1.5, -13);
@@ -671,13 +757,12 @@ async addSavedFrogImages() {
             this.scene.add(frogImage);
             
         } catch (error) {
-            console.warn(`⚠️ Could not load frog image ${i + 1}`);
+            console.warn(`⚠️ Could not load frog image ${i + 1} for Level ${this.currentLevel}`);
         }
     }
     
-    console.log(`✅ Added ${this.savedFrogImages.length} RIGHT-SIDE-UP frog images`);
+    console.log(`✅ Added ${this.savedFrogImages.length} Level ${this.currentLevel} frog images`);
 }
-    
     // ✅ UPDATED: Placeholder frog if image fails to load - Fixed positioning
     addPlaceholderFrog() {
         const placeholderMaterial = new THREE.MeshLambertMaterial({ 
