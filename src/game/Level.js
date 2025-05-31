@@ -1925,8 +1925,8 @@ class LeftyVanVehicle {
         this.mesh = new THREE.Mesh(geometry, material);
         
         // ✅ MATCH LEVEL 1: Use exact same rotation as Vehicle.js
-        this.mesh.rotation.x = -Math.PI / 2;
-        this.mesh.rotation.y = 0;
+        this.mesh.rotation.x = Math.PI;
+        this.mesh.rotation.y = Math.PI/2;
         this.mesh.rotation.z = Math.PI; // Back to Level 1 rotation
         this.mesh.position.y = 5.0;
         
@@ -1976,7 +1976,7 @@ class LeftyVanVehicle {
         
         // ✅ MATCH LEVEL 1: Use exact same rotation logic as Vehicle.js
         this.mesh.rotation.x = -Math.PI / 2;
-        this.mesh.rotation.y = 0;
+        this.mesh.rotation.y = Math.PI;
         
         if (this.movingRight) {
             // Cars moving right: use Level 1 rotation
