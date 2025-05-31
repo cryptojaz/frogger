@@ -21,6 +21,7 @@ export class Level {
         this.goals = [];
         this.decorations = [];
         
+
         // Cached materials
         this.sharedMaterials = Level.getSharedMaterials();
         
