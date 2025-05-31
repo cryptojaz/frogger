@@ -43,6 +43,15 @@ export class Game {
         this.WORLD_WIDTH = 30;
         this.WORLD_DEPTH = 30;
         
+        this.isTabVisible = true;
+        this.lastVisibleTime = Date.now();
+        this.maxDeltaTime = 1/30; // Cap deltaTime to 30fps equivalent
+        
+        // ✅ NEW: Setup visibility change listeners
+        this.setupVisibilityHandlers();
+        
+        console.log('🎮 Game manager initialized with tab backgrounding protection');
+
         console.log('🎮 Game manager initialized with classic Frogger multi-frog system');
     }
     
@@ -162,6 +171,101 @@ export class Game {
         console.log('💡 Lighting setup complete');
     }
     
+
+      // ✅ NEW: Add this method to Game.js
+      setupVisibilityHandlers() {
+        // Handle page visibility changes
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                console.log('👁️ Tab went background - pausing updates');
+                this.isTabVisible = false;
+                this.lastVisibleTime = Date.now();
+                
+                // Pause audio when tab goes background
+                if (this.audioManager) {
+                    this.audioManager.pauseMusic();
+                }
+            } else {
+                console.log('👁️ Tab returned to foreground - resuming updates');
+                this.isTabVisible = true;
+                
+                // Calculate how long we were away
+                const timeAway = Date.now() - this.lastVisibleTime;
+                console.log(`⏰ Tab was away for ${timeAway}ms`);
+                
+                // If away for more than 5 seconds, reset the level
+                if (timeAway > 5000) {
+                    console.log('🔄 Long absence detected - resetting vehicle patterns');
+                    this.resetVehiclePatterns();
+                }
+                
+                // Reset the clock to prevent huge deltaTime
+                this.clock.getDelta(); // This call resets the clock
+                
+                // Resume audio when tab comes back
+                if (this.audioManager && !this.audioManager.isMuted) {
+                    this.audioManager.resumeMusic();
+                }
+            }
+        });
+        
+        // Also handle window focus/blur as backup
+        window.addEventListener('blur', () => {
+            this.isTabVisible = false;
+            this.lastVisibleTime = Date.now();
+        });
+        
+        window.addEventListener('focus', () => {
+            if (!this.isTabVisible) {
+                this.isTabVisible = true;
+                const timeAway = Date.now() - this.lastVisibleTime;
+                if (timeAway > 3000) {
+                    console.log('🔄 Focus returned after long absence - resetting patterns');
+                    this.resetVehiclePatterns();
+                }
+                this.clock.getDelta(); // Reset clock
+            }
+        });
+    }
+    
+    // ✅ NEW: Add this method to Game.js
+    resetVehiclePatterns() {
+        if (!this.level) return;
+        
+        console.log('🚗 Resetting vehicle patterns to fix tab backgrounding issues...');
+        
+        // Get current obstacles
+        const obstacles = this.level.getObstacles();
+        
+        // Reset all vehicle positions to proper spacing
+        obstacles.forEach((obstacle, index) => {
+            const laneObstacles = obstacles.filter(o => 
+                Math.abs(o.position.z - obstacle.position.z) < 1
+            );
+            
+            // Find which lane this obstacle is in
+            const laneIndex = laneObstacles.indexOf(obstacle);
+            const totalInLane = laneObstacles.length;
+            
+            // Recalculate proper spacing
+            const direction = obstacle.velocity.x > 0 ? 1 : -1;
+            const spacing = 17; // Standard spacing
+            const screenBound = 40; // Extended screen bound
+            
+            // Reset to proper position in the lane
+            const newX = direction > 0 ? 
+                -screenBound + (laneIndex * spacing) :
+                screenBound - (laneIndex * spacing);
+            
+            obstacle.setPosition(newX, obstacle.position.y, obstacle.position.z);
+            
+            console.log(`🔄 Reset ${obstacle.type} to position ${newX}`);
+        });
+        
+        console.log('✅ Vehicle patterns reset complete');
+    }
+    
+
 
     setupLevel2Shortcut() {
         document.addEventListener('keydown', (event) => {
@@ -497,6 +601,13 @@ async nextLevel() {
     update(deltaTime) {
         if (!this.isPlaying || this.isPaused || this.gameOver) return;
         
+                // ✅ NEW: Cap deltaTime to prevent huge jumps
+                const cappedDeltaTime = Math.min(deltaTime, this.maxDeltaTime);
+        
+                // ✅ NEW: Skip updates if tab is not visible
+                if (!this.isTabVisible) {
+                    return; // Don't update game objects when tab is hidden
+                }
         // Update player
         if (this.player) {
             this.player.update(deltaTime);

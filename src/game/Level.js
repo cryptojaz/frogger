@@ -928,37 +928,46 @@ createCornerBushes() {
         console.log('✅ Subtle boundaries created');
     }
     
-    // ✅ SIMPLE CONTINUOUS SPAWNING: The correct algorithm
     update(deltaTime) {
-        this.obstacles.forEach(obstacle => {
+        // ✅ NEW: More robust obstacle position management
+        this.obstacles.forEach((obstacle, index) => {
             obstacle.update(deltaTime);
             
-            // ✅ THE KEY: Immediate repositioning with no gaps
-            const screenBound = this.screenWidth / 2;
+            // ✅ IMPROVED: Better boundary detection and reset
+            const screenBound = this.screenWidth / 2 + 15; // Larger buffer
+            const resetBuffer = 5; // Additional buffer for reset position
             
             if (obstacle.velocity.x > 0) {
-                // Moving right: When it goes past right edge, move it to left edge
-                if (obstacle.position.x > screenBound + 5) {
-                    obstacle.setPosition(-screenBound - 5, obstacle.position.y, obstacle.position.z);
+                // Moving right: check if completely off screen
+                if (obstacle.position.x > screenBound) {
+                    // Calculate where it should respawn based on its lane companions
+                    const newX = this.calculateRespawnPosition(obstacle, 'right');
+                    obstacle.setPosition(newX, obstacle.position.y, obstacle.position.z);
+                    console.log(`🔄 ${obstacle.type} respawned at ${newX} (moving right)`);
                 }
             } else if (obstacle.velocity.x < 0) {
-                // Moving left: When it goes past left edge, move it to right edge
-                if (obstacle.position.x < -screenBound - 5) {
-                    obstacle.setPosition(screenBound + 5, obstacle.position.y, obstacle.position.z);
+                // Moving left: check if completely off screen
+                if (obstacle.position.x < -screenBound) {
+                    // Calculate where it should respawn based on its lane companions
+                    const newX = this.calculateRespawnPosition(obstacle, 'left');
+                    obstacle.setPosition(newX, obstacle.position.y, obstacle.position.z);
+                    console.log(`🔄 ${obstacle.type} respawned at ${newX} (moving left)`);
                 }
             }
         });
         
-        // Goal glow animation
+        // Goal glow animation (keep existing code)
         const time = Date.now() * 0.001;
         this.goals.forEach(goal => {
             if (goal.children && goal.children[0]) {
                 const glow = goal.children[0];
-                glow.material.emissiveIntensity = 0.4 + Math.sin(time * 3) * 0.2;
+                if (glow.material && glow.material.emissiveIntensity !== undefined) {
+                    glow.material.emissiveIntensity = 0.4 + Math.sin(time * 3) * 0.2;
+                }
             }
         });
         
-        // Vine swaying for Level 2
+        // Vine swaying for Level 2 (keep existing code)
         if (this.levelNumber === 2) {
             this.decorations.forEach(decoration => {
                 if (decoration.material === this.sharedMaterials.vineGreen) {
@@ -967,6 +976,39 @@ createCornerBushes() {
                     decoration.rotation.z = Math.sin(time * swaySpeed) * swayAmount;
                 }
             });
+        }
+    }
+    
+    // ✅ NEW: Add this method to Level.js
+    calculateRespawnPosition(obstacle, direction) {
+        // Find all obstacles in the same lane (same Z position)
+        const laneObstacles = this.obstacles.filter(o => 
+            o !== obstacle && 
+            Math.abs(o.position.z - obstacle.position.z) < 1
+        );
+        
+        if (laneObstacles.length === 0) {
+            // No other obstacles in lane, use standard position
+            const screenBound = this.screenWidth / 2 + 15;
+            return direction === 'right' ? -screenBound - 5 : screenBound + 5;
+        }
+        
+        // Find the furthest obstacle in the opposite direction
+        let furthestObstacle;
+        if (direction === 'right') {
+            // Respawning on left, find leftmost obstacle
+            furthestObstacle = laneObstacles.reduce((leftmost, current) => 
+                current.position.x < leftmost.position.x ? current : leftmost
+            );
+            // Spawn behind the leftmost obstacle
+            return furthestObstacle.position.x - 17; // Standard spacing
+        } else {
+            // Respawning on right, find rightmost obstacle  
+            furthestObstacle = laneObstacles.reduce((rightmost, current) => 
+                current.position.x > rightmost.position.x ? current : rightmost
+            );
+            // Spawn behind the rightmost obstacle
+            return furthestObstacle.position.x + 17; // Standard spacing
         }
     }
 
