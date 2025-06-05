@@ -605,7 +605,7 @@ class MarsProtestorVehicle extends Vehicle {
         const geometry = new THREE.PlaneGeometry(size.width, size.height);
         
         // Try to load texture
-        const texture = this.loadLevel3Texture('marsprotestor.png');  // ONLY change filename
+        const texture = this.loadLevel3Texture('marsprotestor2.png');  // ONLY change filename
         
         const material = new THREE.MeshBasicMaterial({
             map: texture,
