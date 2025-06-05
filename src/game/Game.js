@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import { Player } from './Player.js';
 import { Level } from './Level.js';
+import { LevelConfigManager } from './LevelConfig.js';
+// Add this line to the imports at the top of Game.js
+import { LevelFactory } from './LevelFactory.js';
 
 export class Game {
     constructor(canvas, ui, audioManager = null) {
@@ -73,8 +76,7 @@ export class Game {
             // Load initial level (Level 1 - Classic Frogger)
             await this.loadLevel(this.currentLevel);
             
-            this.setupLevel2Shortcut(); // ✅ NEW: Add this line to init() method
-
+            this.setupLevelShortcuts();
             // Create player
             this.setupPlayer();
             
@@ -271,61 +273,266 @@ export class Game {
         console.log('✅ Vehicle patterns reset complete');
     }
     
+// 1. FIXED: Mars rocks repositioned away from road and river
+createMarsRocks() {
+    console.log('🪨 Creating Mars rocks away from gameplay areas...');
+    
+    // ✅ REPOSITIONED: Rocks ONLY in background/side areas, NOT on road/river
+    const rockPositions = [
+        // ✅ FAR BACKGROUND (behind goal area)
+        { x: -30, z: -40 }, { x: -25, z: -45 }, { x: -35, z: -35 },
+        { x: 30, z: -40 }, { x: 25, z: -45 }, { x: 35, z: -35 },
+        
+        // ✅ FAR LEFT SIDE (away from playable area)
+        { x: -60, z: 20 }, { x: -65, z: 15 }, { x: -58, z: 25 },
+        { x: -70, z: 10 }, { x: -75, z: 5 }, { x: -68, z: 30 },
+        { x: -55, z: 0 }, { x: -60, z: -15 }, { x: -65, z: -25 },
+        
+        // ✅ FAR RIGHT SIDE (away from playable area)
+        { x: 60, z: 20 }, { x: 65, z: 15 }, { x: 58, z: 25 },
+        { x: 70, z: 10 }, { x: 75, z: 5 }, { x: 68, z: 30 },
+        { x: 55, z: 0 }, { x: 60, z: -15 }, { x: 65, z: -25 },
+        
+        // ✅ EXTREME CORNERS (very far from gameplay)
+        { x: -80, z: 40 }, { x: 80, z: 40 }, { x: -80, z: -50 }, { x: 80, z: -50 },
+        
+        // ✅ STARTING AREA SIDES (behind starting grass)
+        { x: -45, z: 35 }, { x: 45, z: 35 }, { x: -50, z: 40 }, { x: 50, z: 40 }
+    ];
+    
+    rockPositions.forEach((pos, index) => {
+        const rockSize = 1.5 + (index % 5) * 0.8;
+        
+        let rockGeometry;
+        if (index % 3 === 0) {
+            rockGeometry = new THREE.SphereGeometry(rockSize, 8, 6);
+        } else if (index % 3 === 1) {
+            rockGeometry = new THREE.BoxGeometry(rockSize * 1.2, rockSize * 0.8, rockSize * 1.1);
+        } else {
+            rockGeometry = new THREE.DodecahedronGeometry(rockSize * 0.9);
+        }
+        
+        const rock = new THREE.Mesh(rockGeometry, this.sharedMaterials.marsRock);
+        rock.position.set(pos.x, rockSize * 0.6, pos.z);
+        
+        rock.rotation.x = Math.random() * Math.PI;
+        rock.rotation.y = Math.random() * Math.PI;
+        rock.rotation.z = Math.random() * Math.PI;
+        
+        const scaleVariation = 0.8 + Math.random() * 0.4;
+        rock.scale.set(scaleVariation, scaleVariation * 0.8, scaleVariation);
+        
+        rock.castShadow = true;
+        rock.receiveShadow = true;
+        
+        this.decorations.push(rock);
+        this.scene.add(rock);
+    });
+    
+    console.log(`✅ Created ${rockPositions.length} Mars rocks positioned safely away from gameplay areas`);
+}
 
-
-    setupLevel2Shortcut() {
-        document.addEventListener('keydown', (event) => {
-            // Only during Level 1 gameplay
-            if (this.isPlaying && this.currentLevel === 1) {
-                // Add typed character to buffer
-                if (event.key.length === 1) {
-                    this.levelShortcutBuffer += event.key.toLowerCase();
-                    
-                    // Keep only last 6 characters
-                    if (this.levelShortcutBuffer.length > 6) {
-                        this.levelShortcutBuffer = this.levelShortcutBuffer.slice(-6);
-                    }
-                    
-                    // Check for "level2" sequence
-                    if (this.levelShortcutBuffer.includes('level2')) {
-                        console.log('🔧 Level 2 shortcut activated!');
-                        this.debugJumpToLevel2();
-                        this.levelShortcutBuffer = ''; // Clear buffer
-                    }
-                }
-            } else {
-                // Clear buffer when not in Level 1
-                this.levelShortcutBuffer = '';
-            }
+// 2. FIXED: Opaque domes without support poles
+createSpaceDomes() {
+    console.log('🛸 Creating bigger opaque space domes...');
+    
+    const domePositions = [
+        { x: -50, z: 35, size: 12 },
+        { x: 50, z: 35, size: 10 },
+        { x: -45, z: -30, size: 14 },
+        { x: 45, z: -30, size: 11 },
+        { x: 0, z: 40, size: 8 },
+        { x: 0, z: -35, size: 9 }
+    ];
+    
+    domePositions.forEach((pos) => {
+        const domeGeometry = new THREE.SphereGeometry(pos.size, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+        
+        // ✅ FIXED: Opaque dome material
+        const opaqueDomeMaterial = new THREE.MeshLambertMaterial({ 
+            color: 0xcccccc,
+            transparent: false,  // ✅ REMOVED: transparency
+            opacity: 1.0         // ✅ SOLID: fully opaque
         });
-    }
-    // In Game.js - Replace the debugJumpToLevel2() method
+        
+        const dome = new THREE.Mesh(domeGeometry, opaqueDomeMaterial);
+        dome.position.set(pos.x, pos.size * 0.6, pos.z);
+        dome.castShadow = true;
+        dome.receiveShadow = true;
+        
+        this.decorations.push(dome);
+        this.scene.add(dome);
+        
+        // ✅ REMOVED: No more support structures/poles
+    });
+    
+    console.log('✅ Created opaque space domes without support poles');
+}
+
+// FIXED setupLevelShortcuts method for Game.js
+// Replace your existing setupLevelShortcuts() method with this:
+
+setupLevelShortcuts() {
+    console.log('🔧 Setting up FIXED unified level shortcuts...');
+    
+    document.addEventListener('keydown', (event) => {
+        // Only work during active gameplay
+        if (!this.isPlaying || this.gameOver || this.levelComplete) return;
+        
+        // Add typed character to buffer (convert to lowercase)
+        if (event.key.length === 1) {
+            this.levelShortcutBuffer += event.key.toLowerCase();
+            
+            // Keep only last 10 characters to prevent memory buildup and ensure full "level2" capture
+            if (this.levelShortcutBuffer.length > 10) {
+                this.levelShortcutBuffer = this.levelShortcutBuffer.slice(-10);
+            }
+            
+            // ✅ FIXED: More robust shortcut detection
+            console.log(`📝 Shortcut buffer: "${this.levelShortcutBuffer}" (Level ${this.currentLevel})`);
+            
+            // Check for shortcuts based on current level
+            if (this.currentLevel === 1 && this.levelShortcutBuffer.includes('level2')) {
+                console.log('🔧 Level 2 shortcut activated from Level 1!');
+                this.levelShortcutBuffer = ''; // Clear immediately
+                this.debugJumpToLevel2();
+                
+            } else if (this.currentLevel === 2 && this.levelShortcutBuffer.includes('level3')) {
+                console.log('🔧 Level 3 shortcut activated from Level 2!');
+                this.levelShortcutBuffer = ''; // Clear immediately
+                this.debugJumpToLevel3();
+                
+            } else if (this.currentLevel === 3 && this.levelShortcutBuffer.includes('level4')) {
+                console.log('🔧 Level 4 shortcut activated from Level 3!');
+                this.levelShortcutBuffer = ''; // Clear immediately
+                this.debugJumpToLevel4();
+                
+            } else if (this.currentLevel === 4 && this.levelShortcutBuffer.includes('level5')) {
+                console.log('🔧 Level 5 shortcut activated from Level 4!');
+                this.levelShortcutBuffer = ''; // Clear immediately
+                this.debugJumpToLevel5();
+            }
+            
+            // ✅ ADDITIONAL DEBUG: Also check for simple shortcuts
+            if (this.levelShortcutBuffer.includes('22222')) {
+                console.log('🔧 Emergency Level 2 shortcut (22222)!');
+                this.levelShortcutBuffer = '';
+                this.debugJumpToLevel2();
+            }
+            
+            if (this.levelShortcutBuffer.includes('33333')) {
+                console.log('🔧 Emergency Level 3 shortcut (33333)!');
+                this.levelShortcutBuffer = '';
+                this.debugJumpToLevel3();
+            }
+        }
+        
+        // ✅ ADDITIONAL FIX: Clear buffer on Escape key
+        if (event.key === 'Escape') {
+            this.levelShortcutBuffer = '';
+            console.log('🧹 Shortcut buffer cleared');
+        }
+    });
+    
+    console.log('✅ FIXED unified level shortcuts ready');
+}
+
+// ✅ ALSO ADD: Enhanced debugJumpToLevel2 method with better error handling
 async debugJumpToLevel2() {
-    console.log('🚀 Jumping to Level 2 via shortcut...');
-    this.currentLevel = 2;
+    console.log('🚀 FIXED: Jumping to Level 2: Jungle Swamp via shortcut...');
+    
+    // ✅ PREVENT: Multiple calls
+    if (this.isLoadingLevel) {
+        console.warn('⚠️ Level already loading, ignoring Level 2 shortcut');
+        return;
+    }
+    
+    this.isLoadingLevel = true;
+    this.isPlaying = false; // Stop gameplay immediately
+    
+    try {
+        this.currentLevel = 2;
+        this.frogsRescued = 0;
+        this.totalFrogsNeeded = 5; // Level 2 has 5 frogs
+        this.clearSavedFrogImages();
+        
+        // Stop current music completely before switching
+        if (this.audioManager) {
+            console.log('🛑 Stopping current music for Level 2 shortcut');
+            this.audioManager.stopMusic();
+            
+            // Wait a moment for clean stop, then start Level 2 music
+            setTimeout(() => {
+                console.log('🎵 Starting Level 2 music via shortcut');
+                this.audioManager.playLevelMusic(2);
+            }, 200);
+        }
+        
+        // ✅ FORCE CLEAN: Dispose current level completely
+        if (this.level) {
+            console.log('🧹 Force disposing current level for Level 2 shortcut...');
+            this.level.dispose();
+            this.level = null;
+            
+            // Wait for cleanup
+            await new Promise(resolve => setTimeout(resolve, 300));
+        }
+        
+        // ✅ LOAD: Level 2 using the old system (since Level 2 uses Level.js)
+        console.log('🏗️ Loading Level 2 using old Level.js system...');
+        this.level = new Level(this.scene, 2, this.WORLD_WIDTH, this.WORLD_DEPTH);
+        await this.level.create();
+        this.lastLoadedLevel = 2;
+        
+        // Reset player
+        if (this.player) {
+            this.player.ridingLog = null;
+            this.player.setPosition(0, 0, 17);
+        }
+        
+        // Update UI
+        this.ui.updateLevel(this.currentLevel);
+        this.ui.updateFrogProgress(this.frogsRescued, this.totalFrogsNeeded);
+        
+        this.isLoadingLevel = false;
+        this.isPlaying = true;
+        
+        console.log('✅ FIXED: Successfully jumped to Level 2');
+        
+    } catch (error) {
+        console.error('❌ FAILED: Level 2 shortcut error:', error);
+        this.isLoadingLevel = false;
+        this.isPlaying = true; // Resume current level
+    }
+}
+
+// 5. ADD: debugJumpToLevel3 method
+async debugJumpToLevel3() {
+    console.log('🚀 Jumping to Level 3: Mars Colony via shortcut...');
+    this.currentLevel = 3;
     this.frogsRescued = 0;
-    this.totalFrogsNeeded = 5; // Level 2 has 5 frogs
+    this.totalFrogsNeeded = 6; // Level 3 has 6 frogs
     this.clearSavedFrogImages();
     
-    // ✅ FIXED: Stop current music completely before switching
+    // Stop current music completely before switching
     if (this.audioManager) {
-        console.log('🛑 Stopping current music for Level 2 shortcut');
+        console.log('🛑 Stopping current music for Level 3 shortcut');
         this.audioManager.stopMusic();
         
-        // Wait a moment for clean stop, then start Level 2 music
+        // Wait a moment for clean stop, then start Level 3 music
         setTimeout(() => {
-            console.log('🎵 Starting Level 2 music via shortcut');
-            this.audioManager.playLevelMusic(2);
+            console.log('🎵 Starting Level 3 music via shortcut');
+            this.audioManager.playLevelMusic(3);
         }, 200);
     }
     
-    // Load Level 2
+    // Load Level 3
     if (this.level) {
         this.level.dispose();
         this.level = null;
     }
     
-    await this.loadLevel(2);
+    await this.loadLevel(3);
     
     // Reset player
     if (this.player) {
@@ -340,20 +547,87 @@ async debugJumpToLevel2() {
     this.isPlaying = true;
 }
 
-
-    setFrogCountForLevel(level) {
-        switch(level) {
-            case 1:
-                this.totalFrogsNeeded = 4;
-                break;
-            case 2:
-                this.totalFrogsNeeded = 5; // Level 2 needs 5 frogs
-                break;
-            default:
-                this.totalFrogsNeeded = 4;
-        }
-        console.log(`🐸 Level ${level}: ${this.totalFrogsNeeded} frogs needed`);
+// 6. ADD: debugJumpToLevel4 method
+async debugJumpToLevel4() {
+    console.log('🏛️ Jumping to Level 4: Washington D.C. via shortcut...');
+    this.currentLevel = 4;
+    this.frogsRescued = 0;
+    this.totalFrogsNeeded = 7; // Level 4 has 7 frogs
+    this.clearSavedFrogImages();
+    
+    if (this.audioManager) {
+        console.log('🛑 Stopping current music for Level 4 shortcut');
+        this.audioManager.stopMusic();
+        
+        setTimeout(() => {
+            console.log('🎵 Starting Level 4 music via shortcut');
+            this.audioManager.playLevelMusic(4);
+        }, 200);
     }
+    
+    if (this.level) {
+        this.level.dispose();
+        this.level = null;
+    }
+    
+    await this.loadLevel(4);
+    
+    if (this.player) {
+        this.player.ridingLog = null;
+        this.player.setPosition(0, 0, 17);
+    }
+    
+    this.ui.updateLevel(this.currentLevel);
+    this.ui.updateFrogProgress(this.frogsRescued, this.totalFrogsNeeded);
+    
+    this.isPlaying = true;
+}
+
+// 7. ADD: debugJumpToLevel5 method
+async debugJumpToLevel5() {
+    console.log('🤖 Jumping to Level 5: AGI Simulation via shortcut...');
+    this.currentLevel = 5;
+    this.frogsRescued = 0;
+    this.totalFrogsNeeded = 8; // Level 5 has 8 frogs
+    this.clearSavedFrogImages();
+    
+    if (this.audioManager) {
+        console.log('🛑 Stopping current music for Level 5 shortcut');
+        this.audioManager.stopMusic();
+        
+        setTimeout(() => {
+            console.log('🎵 Starting Level 5 music via shortcut');
+            this.audioManager.playLevelMusic(5);
+        }, 200);
+    }
+    
+    if (this.level) {
+        this.level.dispose();
+        this.level = null;
+    }
+    
+    await this.loadLevel(5);
+    
+    if (this.player) {
+        this.player.ridingLog = null;
+        this.player.setPosition(0, 0, 17);
+    }
+    
+    this.ui.updateLevel(this.currentLevel);
+    this.ui.updateFrogProgress(this.frogsRescued, this.totalFrogsNeeded);
+    
+    this.isPlaying = true;
+}
+// REPLACE this method in Game.js
+setFrogCountForLevel(level) {
+    // Import config to get frog counts
+    import('./LevelConfig.js').then(({ LevelConfigManager }) => {
+        const config = LevelConfigManager.getConfig(level);
+        this.totalFrogsNeeded = config ? config.frogsNeeded : 4;
+        console.log(`🐸 Level ${level}: ${this.totalFrogsNeeded} frogs needed`);
+    });
+}
+
 // ADD this method to Game.js:
 async forceCleanCurrentLevel() {
     console.log(`🧹 Force cleaning Level ${this.currentLevel}...`);
@@ -513,40 +787,46 @@ async emergencyReset() {
     
     console.log('✅ Emergency reset complete');
 }
+// REPLACE your loadLevel method in Game.js with this:
 async loadLevel(levelNumber) {
-    // ✅ VERIFY: Level number is valid
+    // Verify level number is valid
     if (levelNumber < 1 || levelNumber > this.maxLevel) {
         console.error(`❌ Invalid level number: ${levelNumber}`);
-        levelNumber = 1; // Fallback to Level 1
+        levelNumber = 1;
     }
     
-    console.log(`🏗️ Loading level ${levelNumber} (previous: ${this.lastLoadedLevel})...`);
+    console.log(`🏗️ Loading level ${levelNumber}...`);
     
-    // ✅ PREVENT: Loading same level twice
+    // Prevent loading same level twice
     if (this.lastLoadedLevel === levelNumber && this.level) {
         console.log(`⚠️ Level ${levelNumber} already loaded, skipping...`);
         return;
     }
     
     try {
-        console.log(`🏗️ Loading level ${levelNumber}...`);
-        
-        // Simple cleanup before creating new level
+        // Clean up previous level
         if (this.level) {
             console.log('🧹 Disposing previous level...');
             this.level.dispose();
             this.level = null;
-            
-            // Brief pause for cleanup
             await new Promise(resolve => setTimeout(resolve, 100));
         }
         
-        // Create new level with cached materials
-        console.log('🔧 Creating level...');
-        this.level = new Level(this.scene, levelNumber, this.WORLD_WIDTH, this.WORLD_DEPTH);
-        await this.level.create();
+        // ✅ HYBRID APPROACH: Use old system for 1&2, new for 3+
+        if (levelNumber <= 2) {
+            // Use your existing Level.js for Levels 1 & 2 (unchanged)
+            console.log(`🔧 Creating level ${levelNumber} with existing system...`);
+            this.level = new Level(this.scene, levelNumber, this.WORLD_WIDTH, this.WORLD_DEPTH);
+            await this.level.create();
+        } else {
+            // Use new system for Level 3+
+            console.log(`🔧 Creating level ${levelNumber} with new system...`);
+            const { LevelFactory } = await import('./LevelFactory.js');
+            this.level = LevelFactory.createLevel(this.scene, levelNumber, this.WORLD_WIDTH, this.WORLD_DEPTH);
+            await this.level.create();
+        }
         
-        // ✅ Add saved frog images to the new level
+        // Add saved frog images to the new level
         await this.addSavedFrogImages();
         
         console.log(`✅ Level ${levelNumber} loaded successfully`);
@@ -558,6 +838,7 @@ async loadLevel(levelNumber) {
         throw error;
     }
 }
+
     setupPlayer() {
         try {
             console.log('🐸 Creating player...');
@@ -772,7 +1053,7 @@ async nextLevel() {
         this.checkWinCondition();
     }
     
-    // ✅ ENHANCED COLLISION DETECTION with Ground Circle Danger System
+// ✅ COMPLETE COLLISION DETECTION with Ground Circle Danger System + Level 3 Support
 checkCollisions() {
     if (!this.level || !this.player) return;
     
@@ -781,99 +1062,106 @@ checkCollisions() {
     
     // ✅ UPDATED GAME ZONES for new polished layout
     const roadZone = playerPos.z >= 1 && playerPos.z <= 14;           // Road area
-    const safeMedianZone = playerPos.z >= -5 && playerPos.z <= 3;     // ✅ Wide safe median (6 units)
-    const waterZone = playerPos.z >= -12 && playerPos.z <= -2;        // ✅ Water area (adjusted for new positions)
+    const safeMedianZone = playerPos.z >= -5 && playerPos.z <= 3;     // Wide safe median
+    const waterZone = playerPos.z >= -12 && playerPos.z <= -2;        // Water/transport area
     const startZone = playerPos.z >= 14;                              // Starting grass
-    const goalZone = playerPos.z <= -13;                              // ✅ GFL goal building area
+    const goalZone = playerPos.z <= -13;                              // Goal building area
     
-    // ✅ NEW: Initialize danger level for ground circle
+    // ✅ Initialize danger level for ground circle
     let dangerLevel = 0; // 0 = Safe (Green), 1 = Caution (Yellow), 2 = Danger (Red)
     
     if (waterZone) {
-        // ✅ STABLE LOG PHYSICS - Player must be on log or gator or drown
-        let onStableLog = false;
-        let ridingLog = null;
+        // ✅ WATER/TRANSPORT ZONE: Player must be on rideable transport or drown
+        let onStableTransport = false;
+        let ridingTransport = null;
         let nearbyDanger = false;
         
         for (const obstacle of obstacles) {
-            // ✅ FIXED: Check for both logs and gators (Level 2)
-            if (obstacle.isRideable && (obstacle.type === 'log' || obstacle.type === 'gator')) {
+            // ✅ Check for ALL rideable types across all levels
+            const rideableTypes = [
+                'log',      // Level 1 logs
+                'gator',    // Level 2 gators  
+                'robovan'   // Level 3 robovans
+            ];
+            
+            if (obstacle.isRideable && rideableTypes.includes(obstacle.type)) {
                 const distance = playerPos.distanceTo(obstacle.position);
                 if (distance < 3.0) { // Generous collision area for easier riding
-                    onStableLog = true;
-                    ridingLog = obstacle;
+                    onStableTransport = true;
+                    ridingTransport = obstacle;
                     
-                    // ✅ NEW: Anchor frog to log but allow movement
-                    if (!this.player.ridingLog || this.player.ridingLog !== ridingLog) {
-                        // First time on this log - store relative position
+                    // ✅ Anchor frog to transport but allow movement
+                    if (!this.player.ridingLog || this.player.ridingLog !== ridingTransport) {
+                        // First time on this transport - store relative position
                         this.player.logOffset = this.player.position.x - obstacle.position.x;
-                        console.log(`🪵 Frog hopped onto ${obstacle.type} at offset: ${this.player.logOffset.toFixed(2)}`);
+                        console.log(`🚁 Frog hopped onto ${obstacle.type} at offset: ${this.player.logOffset.toFixed(2)}`);
                     }
                     
-                    // Keep frog at same relative position on the log (this happens every frame)
+                    // Keep frog at same relative position on the transport
                     this.player.position.x = obstacle.position.x + this.player.logOffset;
                     this.updatePlayerBounds();
                     
                     // Store riding state for input handling
-                    this.player.ridingLog = ridingLog;
+                    this.player.ridingLog = ridingTransport;
                     
-                    console.log(`🪵 Frog riding ${obstacle.type} at relative position`);
+                    console.log(`🚁 Frog riding ${obstacle.type} at relative position`);
                     break;
                 } else if (distance < 5.0) {
-                    // ✅ NEW: Check if log/gator is nearby for caution warning
+                    // Transport nearby but not on it - caution warning
                     nearbyDanger = true;
                 }
             }
         }
         
-        if (!onStableLog) {
-            // ✅ NEW: Set danger level based on water situation
+        if (!onStableTransport) {
+            // ✅ Set danger level based on water/transport situation
             if (nearbyDanger) {
-                dangerLevel = 1; // Yellow - log nearby but not on it
+                dangerLevel = 1; // Yellow - transport nearby but not on it
             } else {
                 dangerLevel = 2; // Red - about to drown
             }
             
             // Clear riding state
             this.player.ridingLog = null;
-            console.log(`💀 Frog drowned in water at Z: ${playerPos.z.toFixed(1)}!`);
+            console.log(`💀 Frog drowned in transport zone at Z: ${playerPos.z.toFixed(1)}!`);
             this.playerHit();
             
-            // ✅ UPDATE: Set ground circle to red for drowning
+            // Set ground circle to red for drowning
             if (this.player) {
                 this.player.updateGroundCircleColor(2);
             }
             return;
         } else {
-            // ✅ NEW: Safe on log/gator - green circle
+            // Safe on transport - green circle
             dangerLevel = 0;
         }
         
     } else {
-        // ✅ CLEAR RIDING STATE when not in water
+        // ✅ CLEAR RIDING STATE when not in water/transport zone
         this.player.ridingLog = null;
         
         if (roadZone) {
-            // ✅ ENHANCED: Road collision detection with danger proximity system
+            // ✅ ROAD ZONE: Check for vehicle collisions
             let nearestVehicleDistance = Infinity;
             let hitByVehicle = false;
             
             for (const obstacle of obstacles) {
-                // Check for ALL dangerous vehicle types
+                // ✅ Check for ALL dangerous vehicle types across all levels
                 const dangerousVehicles = [
-                    'cybertruck', 'taxi', 'sportscar',  // Level 1 vehicles
-                    'angryfrog', 'protestor', 'leftyvan' // Level 2 vehicles
+                    'cybertruck', 'taxi', 'sportscar',      // Level 1 vehicles
+                    'angryfrog', 'protestor', 'leftyvan',   // Level 2 vehicles
+                    'alieninufo', 'tardigrade', 'marsprotestor' // Level 3 vehicles
                 ];
                 
                 if (!obstacle.isRideable && dangerousVehicles.includes(obstacle.type)) {
                     const distance = playerPos.distanceTo(obstacle.position);
                     
-                    // ✅ Track nearest vehicle for danger level calculation
+                    // Track nearest vehicle for danger level calculation
                     if (distance < nearestVehicleDistance) {
                         nearestVehicleDistance = distance;
                     }
                     
-                    // ✅ Collision detection
+                    // ✅ COLLISION DETECTION
                     if (distance < 1.8) {
                         console.log(`💀 Frog hit by ${obstacle.type} on road!`);
                         hitByVehicle = true;
@@ -883,7 +1171,7 @@ checkCollisions() {
                 }
             }
             
-            // ✅ NEW: Set danger level based on vehicle proximity
+            // ✅ Set danger level based on vehicle proximity
             if (!hitByVehicle) {
                 if (nearestVehicleDistance < 3.0) {
                     dangerLevel = 2; // Red - vehicle very close
@@ -896,7 +1184,7 @@ checkCollisions() {
             
             if (hitByVehicle) {
                 this.playerHit();
-                // ✅ UPDATE: Ground circle will be updated to red in playerHit
+                // Ground circle will be updated to red in playerHit method
                 return;
             }
             
@@ -905,18 +1193,17 @@ checkCollisions() {
             dangerLevel = 0;
             
         } else {
-            // ✅ Unknown zone - caution
+            // ✅ UNKNOWN ZONE - caution
             dangerLevel = 1;
             console.log(`⚠️ Frog in unknown zone at Z: ${playerPos.z.toFixed(1)}`);
         }
     }
     
-    // ✅ NEW: Update ground circle color based on calculated danger level
+    // ✅ UPDATE GROUND CIRCLE COLOR based on calculated danger level
     if (this.player) {
         this.player.updateGroundCircleColor(dangerLevel);
     }
 }
-    
     // ✅ UPDATED WIN CONDITION with multi-frog system
     checkWinCondition() {
         if (!this.player) return;
@@ -986,12 +1273,12 @@ checkCollisions() {
         console.log('🔄 Reset for next frog rescue');
     }
     
-
-    // ✅ UPDATED: Use infowarspepe.png for Level 2 frog images
+// REPLACE the incomplete addFrogImage method in Game.js with this:
 async addFrogImage() {
     try {
-        // ✅ Use different images based on level
-        const imageName = this.currentLevel === 2 ? '/infowarspepe.png' : '/gflmemer.png';
+        const config = LevelConfigManager.getConfig(this.currentLevel);
+        const imageName = config ? config.assets.frogImages : '/gflmemer.png';
+        
         const texture = await this.loadTexture(imageName);
         
         // ✅ VIBRANT IMAGE SETTINGS: Same as other images
@@ -1024,7 +1311,7 @@ async addFrogImage() {
         this.savedFrogImages.push(frogImage);
         this.scene.add(frogImage);
         
-        console.log(`✅ Added Level ${this.currentLevel} frog image ${this.frogsRescued} using ${imageName}`);
+        console.log(`✅ Added Level ${this.currentLevel} frog image using ${imageName}`);
         
     } catch (error) {
         console.warn(`⚠️ Could not load frog image for Level ${this.currentLevel}, using placeholder`);
@@ -1032,7 +1319,7 @@ async addFrogImage() {
     }
 }
 
-// ✅ UPDATED: Same logic for saved frog images
+// REPLACE the incomplete addSavedFrogImages method in Game.js with this:
 async addSavedFrogImages() {
     console.log(`🐸 Adding ${this.frogsRescued} saved frog images for Level ${this.currentLevel}...`);
     
@@ -1040,8 +1327,9 @@ async addSavedFrogImages() {
     
     for (let i = 0; i < this.frogsRescued; i++) {
         try {
-            // ✅ Use different images based on level
-            const imageName = this.currentLevel === 2 ? '/infowarspepe.png' : '/gflmemer.png';
+            const config = LevelConfigManager.getConfig(this.currentLevel);
+            const imageName = config ? config.assets.frogImages : '/gflmemer.png';
+            
             const texture = await this.loadTexture(imageName);
             
             // ✅ SAME VIBRANT TEXTURE SETTINGS with correct orientation
@@ -1081,7 +1369,6 @@ async addSavedFrogImages() {
     
     console.log(`✅ Added ${this.savedFrogImages.length} Level ${this.currentLevel} frog images`);
 }
-
     
     // ✅ NEW: Clear saved frog images
     clearSavedFrogImages() {

@@ -123,6 +123,10 @@ export class Level {
             case 2:
                 await this.createLevel2_JungleSwamp();
                 break;
+                // In your existing Level.js, add this case to the create() method:
+case 3:
+    await this.createLevel3_MarsColony();
+    break;
             default:
                 await this.createLevel1_RefinedCity();
         }

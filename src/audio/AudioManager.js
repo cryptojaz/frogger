@@ -8,10 +8,10 @@ export class AudioManager {
         this.isInitialized = false;
         this.userInteracted = false;
         
-           // ✅ NEW: Autoplay handling
-    this.pendingMusic = null;
-    this.autoplayListenerAdded = false;
-    
+        // ✅ NEW: Autoplay handling
+        this.pendingMusic = null;
+        this.autoplayListenerAdded = false;
+        
         // Audio context for better control
         this.audioContext = null;
         this.gainNode = null;
@@ -25,7 +25,8 @@ export class AudioManager {
             // Load all music tracks with proper paths
             await this.loadMusic('landing', this.getAudioPath('PatriotFrog.mp3'));      // 🎵 Landing page music
             await this.loadMusic('background', this.getAudioPath('FeelingFroggish.mp3')); // 🎵 Level 1 music
-            await this.loadMusic('level2', this.getAudioPath('Level2song.mp3'));        // 🎵 NEW: Level 2 music
+            await this.loadMusic('level2', this.getAudioPath('Level2song.mp3'));        // 🎵 Level 2 music
+            await this.loadMusic('level3', this.getAudioPath('MarsMission.mp3'));       // 🎵 NEW: Level 3 music
             
             // Load SFX
             await this.loadSFX('jump', this.getAudioPath('jump.mp3'));
@@ -33,7 +34,7 @@ export class AudioManager {
             await this.loadSFX('levelfinish', this.getAudioPath('levelfinish.mp3'));
             
             this.isInitialized = true;
-            console.log('🎵 Audio system initialized with Level 2 music support');
+            console.log('🎵 Audio system initialized with Level 3 Mars music support');
             
         } catch (error) {
             console.warn('Audio initialization failed:', error);
@@ -135,93 +136,91 @@ export class AudioManager {
         }
     }
     
-// In AudioManager.js - Replace the playMusic() method:
-
-playMusic(name = 'background') {
-    if (!this.isInitialized || this.isMuted || !this.sounds[name]) {
-        console.warn(`🎵 Cannot play music '${name}': ${!this.isInitialized ? 'not initialized' : this.isMuted ? 'muted' : 'sound not found'}`);
-        return;
-    }
-    
-    try {
-        // ✅ FIXED: Always enable audio context first
-        this.enableAudioContext();
-        
-        // Stop current music
-        this.stopMusic();
-        
-        const music = this.sounds[name];
-        music.currentTime = 0;
-        music.volume = this.musicVolume;
-        
-        // ✅ FIXED: Better error handling for production autoplay policy
-        const playPromise = music.play();
-        
-        if (playPromise !== undefined) {
-            playPromise
-                .then(() => {
-                    this.currentMusic = music;
-                    console.log(`🎵 ${name} music started successfully`);
-                })
-                .catch(error => {
-                    console.warn(`🎵 Music autoplay blocked for ${name}:`, error.message);
-                    
-                    // ✅ NEW: Store the music to play after user interaction
-                    this.pendingMusic = { name, music };
-                    
-                    // ✅ NEW: Set up one-time click listener to enable music
-                    if (!this.autoplayListenerAdded) {
-                        this.setupAutoplayUnblock();
-                    }
-                });
+    playMusic(name = 'background') {
+        if (!this.isInitialized || this.isMuted || !this.sounds[name]) {
+            console.warn(`🎵 Cannot play music '${name}': ${!this.isInitialized ? 'not initialized' : this.isMuted ? 'muted' : 'sound not found'}`);
+            return;
         }
         
-    } catch (error) {
-        console.warn(`Failed to play music ${name}:`, error);
-    }
-}
-
-// ✅ NEW: Add method to handle autoplay unblocking
-setupAutoplayUnblock() {
-    this.autoplayListenerAdded = true;
-    
-    const enableMusicOnInteraction = () => {
-        console.log('🎵 User interaction detected - enabling music...');
-        
-        // Enable audio context
-        this.enableAudioContext();
-        
-        // Play pending music if any
-        if (this.pendingMusic) {
-            console.log(`🎵 Playing pending music: ${this.pendingMusic.name}`);
+        try {
+            // ✅ FIXED: Always enable audio context first
+            this.enableAudioContext();
             
-            const playPromise = this.pendingMusic.music.play();
+            // Stop current music
+            this.stopMusic();
+            
+            const music = this.sounds[name];
+            music.currentTime = 0;
+            music.volume = this.musicVolume;
+            
+            // ✅ FIXED: Better error handling for production autoplay policy
+            const playPromise = music.play();
+            
             if (playPromise !== undefined) {
                 playPromise
                     .then(() => {
-                        this.currentMusic = this.pendingMusic.music;
-                        console.log(`🎵 ${this.pendingMusic.name} music started after user interaction`);
-                        this.pendingMusic = null;
+                        this.currentMusic = music;
+                        console.log(`🎵 ${name} music started successfully`);
                     })
-                    .catch(e => console.warn('Music still failed after interaction:', e));
+                    .catch(error => {
+                        console.warn(`🎵 Music autoplay blocked for ${name}:`, error.message);
+                        
+                        // ✅ NEW: Store the music to play after user interaction
+                        this.pendingMusic = { name, music };
+                        
+                        // ✅ NEW: Set up one-time click listener to enable music
+                        if (!this.autoplayListenerAdded) {
+                            this.setupAutoplayUnblock();
+                        }
+                    });
             }
+            
+        } catch (error) {
+            console.warn(`Failed to play music ${name}:`, error);
         }
+    }
+    
+    // ✅ NEW: Add method to handle autoplay unblocking
+    setupAutoplayUnblock() {
+        this.autoplayListenerAdded = true;
         
-        // Remove listeners after first interaction
-        document.removeEventListener('click', enableMusicOnInteraction);
-        document.removeEventListener('keydown', enableMusicOnInteraction);
-        document.removeEventListener('touchstart', enableMusicOnInteraction);
-    };
+        const enableMusicOnInteraction = () => {
+            console.log('🎵 User interaction detected - enabling music...');
+            
+            // Enable audio context
+            this.enableAudioContext();
+            
+            // Play pending music if any
+            if (this.pendingMusic) {
+                console.log(`🎵 Playing pending music: ${this.pendingMusic.name}`);
+                
+                const playPromise = this.pendingMusic.music.play();
+                if (playPromise !== undefined) {
+                    playPromise
+                        .then(() => {
+                            this.currentMusic = this.pendingMusic.music;
+                            console.log(`🎵 ${this.pendingMusic.name} music started after user interaction`);
+                            this.pendingMusic = null;
+                        })
+                        .catch(e => console.warn('Music still failed after interaction:', e));
+                }
+            }
+            
+            // Remove listeners after first interaction
+            document.removeEventListener('click', enableMusicOnInteraction);
+            document.removeEventListener('keydown', enableMusicOnInteraction);
+            document.removeEventListener('touchstart', enableMusicOnInteraction);
+        };
+        
+        // Listen for any user interaction
+        document.addEventListener('click', enableMusicOnInteraction, { once: true });
+        document.addEventListener('keydown', enableMusicOnInteraction, { once: true });
+        document.addEventListener('touchstart', enableMusicOnInteraction, { once: true });
+        
+        console.log('🎵 Autoplay unblock listeners added - music will start on first user interaction');
+    }
     
-    // Listen for any user interaction
-    document.addEventListener('click', enableMusicOnInteraction, { once: true });
-    document.addEventListener('keydown', enableMusicOnInteraction, { once: true });
-    document.addEventListener('touchstart', enableMusicOnInteraction, { once: true });
-    
-    console.log('🎵 Autoplay unblock listeners added - music will start on first user interaction');
-}
-    
-    // ✅ NEW: Play level-specific music
+    // ✅ UPDATED: Play level-specific music with Level 3 support
     playLevelMusic(levelNumber) {
         let musicName;
         
@@ -231,6 +230,9 @@ setupAutoplayUnblock() {
                 break;
             case 2:
                 musicName = 'level2'; // Level2song.mp3
+                break;
+            case 3:
+                musicName = 'level3'; // MarsMission.mp3
                 break;
             default:
                 musicName = 'background'; // Fallback to Level 1 music
@@ -333,7 +335,7 @@ setupAutoplayUnblock() {
         }, stepTime);
     }
     
-    // ✅ ENHANCED: Smooth transition between level music
+    // ✅ UPDATED: Smooth transition between level music with Level 3 support
     switchToLevelMusic(levelNumber, fadeOutDuration = 800, fadeInDelay = 300) {
         let musicName;
         
@@ -343,6 +345,9 @@ setupAutoplayUnblock() {
                 break;
             case 2:
                 musicName = 'level2';
+                break;
+            case 3:
+                musicName = 'level3'; // MarsMission.mp3
                 break;
             default:
                 musicName = 'background';

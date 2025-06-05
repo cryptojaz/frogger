@@ -72,23 +72,7 @@ export class UI {
         });
     }
     
-    // ✅ FIXED: Now properly progresses to Level 2
-    handleContinueGame() {
-        const currentLevel = parseInt(this.elements.levelCount.textContent.match(/\d+/)?.[0]) || 1;
-        const nextLevel = currentLevel + 1;
-        
-        if (nextLevel === 2) {
-            // ✅ Actually progress to Level 2
-            console.log('🌿 Progressing to Level 2: Jungle Swamp');
-            this.emit('continueGame'); // This triggers nextLevel() in Game.js
-        } else if (nextLevel === 3) {
-            // Level 2 → Level 3: Show coming soon
-            this.showLevel3ComingSoon();
-        } else {
-            // Future levels: Default to coming soon
-            this.showLevelComingSoon(nextLevel);
-        }
-    }
+
     
     // Event system
     on(event, callback) {
@@ -142,42 +126,7 @@ export class UI {
         this.elements.gameOverMessage.classList.add('hidden');
     }
     
-    // ✅ FIXED: Level complete with proper Level 2 support
-    showLevelComplete(nextLevel) {
-        this.hideAllMessages();
-        this.elements.levelCompleteMessage.classList.remove('hidden');
-        
-        if (this.elements.nextLevel) {
-            this.elements.nextLevel.textContent = nextLevel.toString();
-        }
-        
-        // ✅ Enable Level 2 progression
-        const continueBtn = document.getElementById('continue-btn');
-        if (continueBtn) {
-            if (nextLevel === 2) {
-                continueBtn.textContent = 'ENTER JUNGLE SWAMP';
-                continueBtn.disabled = false;
-            } else if (nextLevel === 3) {
-                continueBtn.textContent = 'LEVEL 3 COMING SOON';
-                continueBtn.disabled = true;
-            } else {
-                continueBtn.textContent = 'CONTINUE';
-                continueBtn.disabled = false;
-            }
-        }
-        
-        // Update level complete message text
-        const levelCompleteTitle = document.querySelector('#level-complete-message h2');
-        if (levelCompleteTitle) {
-            if (nextLevel === 2) {
-                levelCompleteTitle.textContent = 'LEVEL COMPLETE! You made it to GFL HQ!';
-            } else {
-                levelCompleteTitle.textContent = 'LEVEL COMPLETE!';
-            }
-        }
-        
-        console.log(`📱 Level complete screen shown for level ${nextLevel}`);
-    }
+
     
     hideLevelComplete() {
         this.elements.levelCompleteMessage.classList.add('hidden');
@@ -311,36 +260,97 @@ export class UI {
         }
     }
     
-    // ✅ UPDATED: Level display with Level 2 support
-    updateLevel(level) {
-        if (this.elements.levelCount) {
-            const levelNames = {
-                1: "1: Metaverse City",
-                2: "2: Jungle Swamp", // ✅ Level 2 enabled
-                3: "3: Coming Soon",
-                4: "4: Coming Soon", 
-                5: "5: Coming Soon"
-            };
-            
-            this.elements.levelCount.textContent = levelNames[level] || level.toString();
-        }
+// Update this method in UI.js:
+updateLevel(level) {
+    if (this.elements.levelCount) {
+        const levelNames = {
+            1: "1: Metaverse City",
+            2: "2: Jungle Swamp",
+            3: "3: Mars Colony", // ✅ Add Mars Colony
+            4: "4: Coming Soon",
+            5: "5: Coming Soon"
+        };
         
-        // ✅ Update start message for Level 2
-        if (level === 2 && this.elements.startMessage) {
-            const titleElement = this.elements.startMessage.querySelector('h2');
-            const descElements = this.elements.startMessage.querySelectorAll('p');
-            
-            if (titleElement) {
-                titleElement.textContent = 'Level 2: Jungle Swamp';
-            }
-            if (descElements[0]) {
-                descElements[0].textContent = 'Use arrow keys to move - FASTER gameplay!';
-            }
-            if (descElements[1]) {
-                descElements[1].textContent = 'Save 5 frogs! Avoid snapping crocodiles and ride lily pads to reach the ancient temple!';
-            }
+        this.elements.levelCount.textContent = levelNames[level] || level.toString();
+    }
+    
+    // ✅ Update start message for Level 3
+    if (level === 3 && this.elements.startMessage) {
+        const titleElement = this.elements.startMessage.querySelector('h2');
+        const descElements = this.elements.startMessage.querySelectorAll('p');
+        
+        if (titleElement) {
+            titleElement.textContent = 'Level 3: Mars Colony';
+        }
+        if (descElements[0]) {
+            descElements[0].textContent = 'Use arrow keys to move - FASTEST gameplay yet!';
+        }
+        if (descElements[1]) {
+            descElements[1].textContent = 'Save 6 frogs! Dodge alien vehicles and ride cybertaxis to reach SpaceX HQ!';
         }
     }
+}
+
+// Update this method in UI.js:
+handleContinueGame() {
+    const currentLevel = parseInt(this.elements.levelCount.textContent.match(/\d+/)?.[0]) || 1;
+    const nextLevel = currentLevel + 1;
+    
+    if (nextLevel === 2) {
+        console.log('🌿 Progressing to Level 2: Jungle Swamp');
+        this.emit('continueGame');
+    } else if (nextLevel === 3) {
+        console.log('🚀 Progressing to Level 3: Mars Colony');
+        this.emit('continueGame'); // ✅ Actually progress to Level 3
+    } else if (nextLevel === 4) {
+        // Level 3 → Level 4: Show coming soon
+        this.showLevel4ComingSoon();
+    } else {
+        // Future levels: Default to coming soon
+        this.showLevelComingSoon(nextLevel);
+    }
+}
+
+// Update this method in UI.js:
+showLevelComplete(nextLevel) {
+    this.hideAllMessages();
+    this.elements.levelCompleteMessage.classList.remove('hidden');
+    
+    if (this.elements.nextLevel) {
+        this.elements.nextLevel.textContent = nextLevel.toString();
+    }
+    
+    const continueBtn = document.getElementById('continue-btn');
+    if (continueBtn) {
+        if (nextLevel === 2) {
+            continueBtn.textContent = 'ENTER JUNGLE SWAMP';
+            continueBtn.disabled = false;
+        } else if (nextLevel === 3) {
+            continueBtn.textContent = 'ENTER MARS COLONY'; // ✅ Enable Level 3
+            continueBtn.disabled = false;
+        } else if (nextLevel === 4) {
+            continueBtn.textContent = 'LEVEL 4 COMING SOON';
+            continueBtn.disabled = true;
+        } else {
+            continueBtn.textContent = 'CONTINUE';
+            continueBtn.disabled = false;
+        }
+    }
+    
+    // Update level complete message text
+    const levelCompleteTitle = document.querySelector('#level-complete-message h2');
+    if (levelCompleteTitle) {
+        if (nextLevel === 2) {
+            levelCompleteTitle.textContent = 'LEVEL COMPLETE! You made it to GFL HQ!';
+        } else if (nextLevel === 3) {
+            levelCompleteTitle.textContent = 'JUNGLE CONQUERED! Welcome to Mars!';
+        } else {
+            levelCompleteTitle.textContent = 'LEVEL COMPLETE!';
+        }
+    }
+    
+    console.log(`📱 Level complete screen shown for level ${nextLevel}`);
+}
     
     // ✅ Frog progress indicator
     updateFrogProgress(currentFrogs, totalFrogs) {
