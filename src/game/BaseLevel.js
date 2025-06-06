@@ -321,8 +321,28 @@ async createSafeArea(startZ, endZ) {
         await this.createHeadquarters(zPosition);
     }
     
-    async createHeadquarters(zPosition) {
-        // Create building
+// REPLACE the createHeadquarters method in BaseLevel.js with this version:
+
+async createHeadquarters(zPosition) {
+    // Check if this is Level 4 (D.C.) for enhanced White House
+    if (this.levelNumber === 4) {
+        // Create White House style building - wider and more presidential
+        const buildingGeometry = new THREE.BoxGeometry(20, 12, 6); // Wider for White House
+        const building = new THREE.Mesh(buildingGeometry, this.sharedMaterials.whitehouse);
+        building.position.set(0, 6, zPosition);
+        building.castShadow = true;
+        building.receiveShadow = true;
+        
+        // ✅ REMOVED: No more columns - clean White House look
+        
+        // Add White House image texture
+        await this.addHeadquartersImage(building);
+        
+        this.goals.push(building);
+        this.decorations.push(building);
+        this.scene.add(building);
+    } else {
+        // Default building for other levels
         const buildingGeometry = new THREE.BoxGeometry(12, 8, 4);
         const building = new THREE.Mesh(buildingGeometry, this.sharedMaterials.goalBuilding);
         building.position.set(0, 4, zPosition);
@@ -336,6 +356,53 @@ async createSafeArea(startZ, endZ) {
         this.decorations.push(building);
         this.scene.add(building);
     }
+}
+
+// REPLACE the addHeadquartersImage method in BaseLevel.js with this version:
+
+async addHeadquartersImage(building) {
+    try {
+        const texture = await this.loadTexture(this.config.assets.headquarters);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.generateMipmaps = false;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            alphaTest: 0.1,
+            side: THREE.DoubleSide,
+            toneMapped: false,
+            opacity: 1.0
+        });
+        
+        // ✅ UPDATED: Full coverage texture sizes
+        let imageWidth, imageHeight;
+        if (this.levelNumber === 4) {
+            // ✅ FULL COVERAGE: Match building dimensions exactly
+            imageWidth = 20;   // Same as building width
+            imageHeight = 12;  // Same as building height
+        } else {
+            // Standard size for other levels
+            imageWidth = 12;
+            imageHeight = 8;
+        }
+        
+        const geometry = new THREE.PlaneGeometry(imageWidth, imageHeight);
+        const image = new THREE.Mesh(geometry, material);
+        
+        // ✅ POSITIONED: Flush against front face
+        image.position.set(0, 0, this.levelNumber === 4 ? 3.01 : 2.01);
+        image.castShadow = false;
+        image.receiveShadow = false;
+        
+        building.add(image);
+        console.log(`✅ Added full coverage headquarters image: ${this.config.assets.headquarters}`);
+    } catch (error) {
+        console.warn(`⚠️ Could not load headquarters image, using placeholder`);
+    }
+}
     
     async createObstacles() {
         // Create road vehicles
@@ -431,75 +498,281 @@ async createSafeArea(startZ, endZ) {
         await this.createEnvironmentDecorations();
     }
     
+
     async createSoldierDecorations() {
         const assets = this.config.assets;
         
-        // Left soldier
-        await this.createSoldierImage(assets.leftSoldier, -9, 2, this.config.zones.goalArea + 2);
+        // ✅ SOLDIER VISIBILITY FIX: Move soldiers much further apart and away from White House
         
-        // Right soldier  
-        await this.createSoldierImage(assets.rightSoldier, 8, 2, this.config.zones.goalArea + 2);
+        // ✅ MOVED: Left soldier further left and forward (away from White House)
+        await this.createSoldierImage(assets.leftSoldier, -20, 3, this.config.zones.goalArea + 4);
         
-        // Additional soldiers if configured
+        // ✅ MOVED: Right soldier further right and forward (away from White House)  
+        await this.createSoldierImage(assets.rightSoldier, 20, 3, this.config.zones.goalArea + 4);
+        
+        // ✅ ENHANCED: Additional soldiers for better D.C. atmosphere
         if (assets.additionalSoldiers) {
             for (let i = 0; i < assets.additionalSoldiers.length; i++) {
-                const xPos = (i % 2 === 0) ? -25 : 25; // Alternate sides
-                await this.createSoldierImage(assets.additionalSoldiers[i], xPos, 4, this.config.zones.goalArea + 2);
+                // ✅ POSITIONED: Even further apart for maximum visibility
+                const xPos = (i % 2 === 0) ? -35 : 35; // Much further apart
+                const zPos = this.config.zones.goalArea + 6; // Even further forward
+                await this.createSoldierImage(assets.additionalSoldiers[i], xPos, 4, zPos);
             }
         }
+        
+        console.log('✅ MAGA soldiers repositioned for maximum visibility - moved away from White House');
     }
     
-    async createEnvironmentDecorations() {
-        const features = this.config.features;
-        
-        if (features.cityBuildings) {
-            this.createCityBuildings();
-        }
-        
-        if (features.jungleTrees) {
-            this.createJungleTrees();
-        }
-        
-        if (features.cornerBushes) {
-            this.createCornerBushes();
-        }
-        
-        if (features.marsRocks) {
-            this.createMarsRocks();
-        }
-        
-        if (features.spaceDomes) {
-            this.createSpaceDomes();
-        }
-        
-        if (features.dcMonuments) {
-            this.createDCMonuments();
-        }
-        
-        if (features.americanFlags) {
-            this.createAmericanFlags();
-        }
-        
-        if (features.governmentBuildings) {
-            this.createGovernmentBuildings();
-        }
-        
-        if (features.matrixRain) {
-            this.createMatrixRain();
-        }
-        
-        if (features.hologramGrids) {
-            this.createHologramGrids();
-        }
-        
-        if (features.quantumParticles) {
-            this.createQuantumParticles();
-        }
-        
-        if (features.neonGlow) {
-            this.createNeonGlow();
+    // ===== ENHANCED SOLDIER IMAGE CREATION =====
+    // Replace the createSoldierImage method in BaseLevel.js:
+    
+    async createSoldierImage(filename, x, y, z) {
+        try {
+            const texture = await this.loadTexture(filename);
+            texture.colorSpace = THREE.SRGBColorSpace;
+            texture.generateMipmaps = false;
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            
+            const material = new THREE.MeshBasicMaterial({
+                map: texture,
+                transparent: true,
+                alphaTest: 0.1,
+                side: THREE.DoubleSide,
+                toneMapped: false,
+                opacity: 1.0
+            });
+            
+            // ✅ VISIBILITY FIX: Make soldiers larger and more prominent
+            const geometry = new THREE.PlaneGeometry(5, 5); // ✅ INCREASED: from 4x4 to 5x5
+            const image = new THREE.Mesh(geometry, material);
+            
+            image.position.set(x, y, z);
+            image.castShadow = false;
+            image.receiveShadow = false;
+            
+            this.decorations.push(image);
+            this.scene.add(image);
+            
+            console.log(`✅ Added visible soldier decoration: ${filename} at (${x}, ${y}, ${z})`);
+        } catch (error) {
+            console.warn(`⚠️ Could not load ${filename}, using placeholder`);
+            this.createPlaceholderCube(x, y, z, 0xff6600);
         }
     }
+    // Level 4 specific methods for BaseLevel.js
+// Add these methods to your BaseLevel.js class
+
+// 1. REPLACE the createWaterSection method to handle D.C. blue river
+async createWaterSection(startZ, endZ) {
+    const height = endZ - startZ;
+    const centerZ = (startZ + endZ) / 2;
+    
+    let materialKey;
+    switch (this.config.environment.type) {
+        case 'jungle':
+            materialKey = 'swampWater';
+            break;
+        case 'mars':
+            materialKey = 'marsTransportLane'; // Grey Mars transport lanes
+            break;
+        case 'dc':
+            materialKey = 'potomacRiver'; // ✅ NEW: Blue D.C. river
+            break;
+        case 'digital':
+            materialKey = 'dataStream';
+            break;
+        default:
+            materialKey = 'water';
+    }
+    
+    // Full width water section
+    const waterGeometry = new THREE.PlaneGeometry(this.screenWidth + 40, height);
+    const water = new THREE.Mesh(waterGeometry, this.sharedMaterials[materialKey]);
+    water.rotation.x = -Math.PI / 2;
+    water.position.set(0, -0.05, centerZ);
+    this.terrain.push(water);
+    this.scene.add(water);
+}
+
+// 2. ADD: D.C. specific decorations
+createDCBushes() {
+    console.log('🌿 Creating D.C. bushes (replacing Mars rocks)...');
+    
+    // Same positions as Mars rocks but use green bushes instead
+    const bushPositions = [
+        // BACKGROUND AREA (behind White House)
+        { x: -30, z: -35, size: 2.5 },   // Large bush top left back
+        { x: -15, z: -38, size: 2.0 },   // Medium bush left back
+        { x: 0, z: -40, size: 3.0 },     // Extra large center back
+        { x: 15, z: -38, size: 2.0 },    // Medium bush right back
+        { x: 30, z: -35, size: 2.5 },    // Large bush top right back
+        { x: -22, z: -45, size: 1.5 },   // Small bush far left back
+        { x: 22, z: -45, size: 1.5 },    // Small bush far right back
+        
+        // CORNER DECORATIONS (safe from gameplay)
+        { x: -40, z: 30, size: 2.0 },    // Medium bush bottom left corner
+        { x: 40, z: 30, size: 2.0 },     // Medium bush bottom right corner
+        { x: -45, z: 0, size: 1.5 },     // Small bush left side
+        { x: 45, z: 0, size: 1.5 },      // Small bush right side
+        { x: -50, z: -20, size: 2.5 },   // Large bush far left
+        { x: 50, z: -20, size: 2.5 },    // Large bush far right
+        
+        // STARTING AREA DECORATION (visible enhancement)
+        { x: -25, z: 35, size: 2.0 },    // Medium bush bottom left
+        { x: 25, z: 35, size: 2.0 },     // Medium bush bottom right
+        { x: 0, z: 38, size: 1.5 },      // Small bush center bottom
+        { x: -12, z: 32, size: 1.5 },    // Small bush left
+        { x: 12, z: 32, size: 1.5 }      // Small bush right
+    ];
+    
+    // ✅ D.C. green bush material
+    const dcBushMaterial = new THREE.MeshLambertMaterial({ 
+        color: 0x228B22,        // Forest green
+        emissive: 0x0a2a0a,     // Subtle green glow
+        emissiveIntensity: 0.1
+    });
+    
+    // Create natural looking bushes
+    bushPositions.forEach((pos, index) => {
+        // Use sphere geometry for bush shape
+        const bushGeometry = new THREE.SphereGeometry(pos.size, 10, 8);
+        
+        // Flatten the bush slightly to look more natural
+        const vertices = bushGeometry.attributes.position.array;
+        for (let i = 1; i < vertices.length; i += 3) { // Y coordinates
+            vertices[i] *= 0.7; // Flatten to 70% height
+        }
+        bushGeometry.attributes.position.needsUpdate = true;
+        bushGeometry.computeVertexNormals();
+        
+        const bush = new THREE.Mesh(bushGeometry, dcBushMaterial);
+        
+        // Position naturally on ground
+        bush.position.set(pos.x, pos.size * 0.4, pos.z);
+        
+        // Natural rotation - looks like bushes grew naturally
+        bush.rotation.y = Math.random() * Math.PI * 2;  // Any direction
+        
+        // Subtle size variation for natural diversity
+        const scaleVariation = 0.8 + Math.random() * 0.4; // 0.8 to 1.2
+        bush.scale.setScalar(scaleVariation);
+        
+        bush.castShadow = true;
+        bush.receiveShadow = true;
+        
+        this.decorations.push(bush);
+        this.scene.add(bush);
+    });
+    
+    console.log(`✅ Created ${bushPositions.length} D.C. bushes with natural shapes`);
+}
+
+// 3. ENHANCED: D.C. Monuments (improved version)
+createDCMonuments() {
+    console.log('🏛️ Creating enhanced D.C. monuments...');
+    
+    // Washington Monument (tall white obelisk)
+    const monumentGeometry = new THREE.CylinderGeometry(1.2, 1.8, 25, 8);
+    const monument = new THREE.Mesh(monumentGeometry, this.sharedMaterials.marble);
+    monument.position.set(-45, 12.5, 5);
+    monument.castShadow = true;
+    monument.receiveShadow = true;
+    
+    // Lincoln Memorial (Greek temple style)
+    const lincolnBaseGeometry = new THREE.BoxGeometry(18, 6, 12);
+    const lincolnBase = new THREE.Mesh(lincolnBaseGeometry, this.sharedMaterials.marble);
+    lincolnBase.position.set(45, 3, 0);
+    lincolnBase.castShadow = true;
+    
+    // Add columns to Lincoln Memorial
+    for (let i = -2; i <= 2; i++) {
+        const columnGeometry = new THREE.CylinderGeometry(0.8, 0.8, 8, 12);
+        const column = new THREE.Mesh(columnGeometry, this.sharedMaterials.marble);
+        column.position.set(45 + (i * 3), 7, 6);
+        column.castShadow = true;
+        this.decorations.push(column);
+        this.scene.add(column);
+    }
+    
+    // Capitol Building (larger dome structure)
+    const capitolBaseGeometry = new THREE.BoxGeometry(25, 8, 18);
+    const capitolBase = new THREE.Mesh(capitolBaseGeometry, this.sharedMaterials.marble);
+    capitolBase.position.set(0, 4, -30);
+    capitolBase.castShadow = true;
+    
+    const domeGeometry = new THREE.SphereGeometry(6, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+    const capitolDome = new THREE.Mesh(domeGeometry, this.sharedMaterials.whitehouse);
+    capitolDome.position.set(0, 14, -30);
+    capitolDome.castShadow = true;
+    
+    this.decorations.push(monument, lincolnBase, capitolBase, capitolDome);
+    this.scene.add(monument);
+    this.scene.add(lincolnBase);
+    this.scene.add(capitolBase);
+    this.scene.add(capitolDome);
+    
+    console.log('✅ Enhanced D.C. monuments created');
+}
+
+// 6. UPDATE: Enhanced environment decorations dispatcher
+async createEnvironmentDecorations() {
+    const features = this.config.features;
+    
+    if (features.cityBuildings) {
+        this.createCityBuildings();
+    }
+    
+    if (features.jungleTrees) {
+        this.createJungleTrees();
+    }
+    
+    if (features.cornerBushes) {
+        this.createCornerBushes();
+    }
+    
+    if (features.marsRocks) {
+        this.createMarsRocks();
+    }
+    
+    if (features.spaceDomes) {
+        this.createSpaceDomes();
+    }
+    
+    // ✅ NEW: Level 4 D.C. features
+    if (features.dcBushes) {
+        this.createDCBushes();
+    }
+    
+    if (features.dcMonuments) {
+        this.createDCMonuments();
+    }
+    
+    if (features.americanFlags) {
+        this.createAmericanFlags();
+    }
+    
+    if (features.governmentBuildings) {
+        this.createGovernmentBuildings();
+    }
+    
+    // Level 5 features
+    if (features.matrixRain) {
+        this.createMatrixRain();
+    }
+    
+    if (features.hologramGrids) {
+        this.createHologramGrids();
+    }
+    
+    if (features.quantumParticles) {
+        this.createQuantumParticles();
+    }
+    
+    if (features.neonGlow) {
+        this.createNeonGlow();
+    }
+}
     
     // Utility methods
     createLaneMarkings(centerZ) {
@@ -526,69 +799,7 @@ async createSafeArea(startZ, endZ) {
         }
     }
     
-    async createSoldierImage(filename, x, y, z) {
-        try {
-            const texture = await this.loadTexture(filename);
-            texture.colorSpace = THREE.SRGBColorSpace;
-            texture.generateMipmaps = false;
-            texture.minFilter = THREE.LinearFilter;
-            texture.magFilter = THREE.LinearFilter;
-            
-            const material = new THREE.MeshBasicMaterial({
-                map: texture,
-                transparent: true,
-                alphaTest: 0.1,
-                side: THREE.DoubleSide,
-                toneMapped: false,
-                opacity: 1.0
-            });
-            
-            const geometry = new THREE.PlaneGeometry(4, 4);
-            const image = new THREE.Mesh(geometry, material);
-            image.position.set(x, y, z);
-            image.castShadow = false;
-            image.receiveShadow = false;
-            
-            this.decorations.push(image);
-            this.scene.add(image);
-            
-            console.log(`✅ Added soldier decoration: ${filename}`);
-        } catch (error) {
-            console.warn(`⚠️ Could not load ${filename}, using placeholder`);
-            this.createPlaceholderCube(x, y, z, 0xff6600);
-        }
-    }
-    
-    async addHeadquartersImage(building) {
-        try {
-            const texture = await this.loadTexture(this.config.assets.headquarters);
-            texture.colorSpace = THREE.SRGBColorSpace;
-            texture.generateMipmaps = false;
-            texture.minFilter = THREE.LinearFilter;
-            texture.magFilter = THREE.LinearFilter;
-            
-            const material = new THREE.MeshBasicMaterial({
-                map: texture,
-                transparent: true,
-                alphaTest: 0.1,
-                side: THREE.DoubleSide,
-                toneMapped: false,
-                opacity: 1.0
-            });
-            
-            const geometry = new THREE.PlaneGeometry(12, 6);
-            const image = new THREE.Mesh(geometry, material);
-            image.position.set(0, 0, 2.01);
-            image.castShadow = false;
-            image.receiveShadow = false;
-            
-            building.add(image);
-            console.log(`✅ Added headquarters image: ${this.config.assets.headquarters}`);
-        } catch (error) {
-            console.warn(`⚠️ Could not load headquarters image, using placeholder`);
-        }
-    }
-    
+
     loadTexture(url) {
         return new Promise((resolve, reject) => {
             this.textureLoader.load(
@@ -635,7 +846,10 @@ async createSafeArea(startZ, endZ) {
 
 // FIXES FOR BaseLevel.js
 
-// 1. REPLACE the createWaterSection method to extend water full width:
+// Level 4 specific methods for BaseLevel.js
+// Add these methods to your BaseLevel.js class
+
+// 1. REPLACE the createWaterSection method to handle D.C. blue river
 async createWaterSection(startZ, endZ) {
     const height = endZ - startZ;
     const centerZ = (startZ + endZ) / 2;
@@ -646,10 +860,10 @@ async createWaterSection(startZ, endZ) {
             materialKey = 'swampWater';
             break;
         case 'mars':
-            materialKey = 'marsTransportLane'; // ✅ NEW: Use grey Mars transport lanes
+            materialKey = 'marsTransportLane'; // Grey Mars transport lanes
             break;
         case 'dc':
-            materialKey = 'potomacRiver';
+            materialKey = 'potomacRiver'; // ✅ NEW: Blue D.C. river
             break;
         case 'digital':
             materialKey = 'dataStream';
@@ -658,14 +872,195 @@ async createWaterSection(startZ, endZ) {
             materialKey = 'water';
     }
     
-    // ✅ FIXED: Increased width from screenWidth + 20 to full extension
-    const waterGeometry = new THREE.PlaneGeometry(this.screenWidth + 40, height); // Was +20, now +40
+    // Full width water section
+    const waterGeometry = new THREE.PlaneGeometry(this.screenWidth + 40, height);
     const water = new THREE.Mesh(waterGeometry, this.sharedMaterials[materialKey]);
     water.rotation.x = -Math.PI / 2;
     water.position.set(0, -0.05, centerZ);
     this.terrain.push(water);
     this.scene.add(water);
 }
+
+// 2. ADD: D.C. specific decorations
+createDCBushes() {
+    console.log('🌿 Creating D.C. bushes (replacing Mars rocks)...');
+    
+    // Same positions as Mars rocks but use green bushes instead
+    const bushPositions = [
+        // BACKGROUND AREA (behind White House)
+        { x: -30, z: -35, size: 2.5 },   // Large bush top left back
+        { x: -15, z: -38, size: 2.0 },   // Medium bush left back
+        { x: 0, z: -40, size: 3.0 },     // Extra large center back
+        { x: 15, z: -38, size: 2.0 },    // Medium bush right back
+        { x: 30, z: -35, size: 2.5 },    // Large bush top right back
+        { x: -22, z: -45, size: 1.5 },   // Small bush far left back
+        { x: 22, z: -45, size: 1.5 },    // Small bush far right back
+        
+        // CORNER DECORATIONS (safe from gameplay)
+        { x: -40, z: 30, size: 2.0 },    // Medium bush bottom left corner
+        { x: 40, z: 30, size: 2.0 },     // Medium bush bottom right corner
+        { x: -45, z: 0, size: 1.5 },     // Small bush left side
+        { x: 45, z: 0, size: 1.5 },      // Small bush right side
+        { x: -50, z: -20, size: 2.5 },   // Large bush far left
+        { x: 50, z: -20, size: 2.5 },    // Large bush far right
+        
+        // STARTING AREA DECORATION (visible enhancement)
+        { x: -25, z: 35, size: 2.0 },    // Medium bush bottom left
+        { x: 25, z: 35, size: 2.0 },     // Medium bush bottom right
+        { x: 0, z: 38, size: 1.5 },      // Small bush center bottom
+        { x: -12, z: 32, size: 1.5 },    // Small bush left
+        { x: 12, z: 32, size: 1.5 }      // Small bush right
+    ];
+    
+    // ✅ D.C. green bush material
+    const dcBushMaterial = new THREE.MeshLambertMaterial({ 
+        color: 0x228B22,        // Forest green
+        emissive: 0x0a2a0a,     // Subtle green glow
+        emissiveIntensity: 0.1
+    });
+    
+    // Create natural looking bushes
+    bushPositions.forEach((pos, index) => {
+        // Use sphere geometry for bush shape
+        const bushGeometry = new THREE.SphereGeometry(pos.size, 10, 8);
+        
+        // Flatten the bush slightly to look more natural
+        const vertices = bushGeometry.attributes.position.array;
+        for (let i = 1; i < vertices.length; i += 3) { // Y coordinates
+            vertices[i] *= 0.7; // Flatten to 70% height
+        }
+        bushGeometry.attributes.position.needsUpdate = true;
+        bushGeometry.computeVertexNormals();
+        
+        const bush = new THREE.Mesh(bushGeometry, dcBushMaterial);
+        
+        // Position naturally on ground
+        bush.position.set(pos.x, pos.size * 0.4, pos.z);
+        
+        // Natural rotation - looks like bushes grew naturally
+        bush.rotation.y = Math.random() * Math.PI * 2;  // Any direction
+        
+        // Subtle size variation for natural diversity
+        const scaleVariation = 0.8 + Math.random() * 0.4; // 0.8 to 1.2
+        bush.scale.setScalar(scaleVariation);
+        
+        bush.castShadow = true;
+        bush.receiveShadow = true;
+        
+        this.decorations.push(bush);
+        this.scene.add(bush);
+    });
+    
+    console.log(`✅ Created ${bushPositions.length} D.C. bushes with natural shapes`);
+}
+
+// 3. ENHANCED: D.C. Monuments (improved version)
+createDCMonuments() {
+    console.log('🏛️ Creating enhanced D.C. monuments...');
+    
+    // Washington Monument (tall white obelisk)
+    const monumentGeometry = new THREE.CylinderGeometry(1.2, 1.8, 25, 8);
+    const monument = new THREE.Mesh(monumentGeometry, this.sharedMaterials.marble);
+    monument.position.set(-45, 12.5, 5);
+    monument.castShadow = true;
+    monument.receiveShadow = true;
+    
+    // Lincoln Memorial (Greek temple style)
+    const lincolnBaseGeometry = new THREE.BoxGeometry(18, 6, 12);
+    const lincolnBase = new THREE.Mesh(lincolnBaseGeometry, this.sharedMaterials.marble);
+    lincolnBase.position.set(45, 3, 0);
+    lincolnBase.castShadow = true;
+    
+    // Add columns to Lincoln Memorial
+    for (let i = -2; i <= 2; i++) {
+        const columnGeometry = new THREE.CylinderGeometry(0.8, 0.8, 8, 12);
+        const column = new THREE.Mesh(columnGeometry, this.sharedMaterials.marble);
+        column.position.set(45 + (i * 3), 7, 6);
+        column.castShadow = true;
+        this.decorations.push(column);
+        this.scene.add(column);
+    }
+    
+    // Capitol Building (larger dome structure)
+    const capitolBaseGeometry = new THREE.BoxGeometry(25, 8, 18);
+    const capitolBase = new THREE.Mesh(capitolBaseGeometry, this.sharedMaterials.marble);
+    capitolBase.position.set(0, 4, -30);
+    capitolBase.castShadow = true;
+    
+    const domeGeometry = new THREE.SphereGeometry(6, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+    const capitolDome = new THREE.Mesh(domeGeometry, this.sharedMaterials.whitehouse);
+    capitolDome.position.set(0, 14, -30);
+    capitolDome.castShadow = true;
+    
+    this.decorations.push(monument, lincolnBase, capitolBase, capitolDome);
+    this.scene.add(monument);
+    this.scene.add(lincolnBase);
+    this.scene.add(capitolBase);
+    this.scene.add(capitolDome);
+    
+    console.log('✅ Enhanced D.C. monuments created');
+}
+
+
+// 6. UPDATE: Enhanced environment decorations dispatcher
+async createEnvironmentDecorations() {
+    const features = this.config.features;
+    
+    if (features.cityBuildings) {
+        this.createCityBuildings();
+    }
+    
+    if (features.jungleTrees) {
+        this.createJungleTrees();
+    }
+    
+    if (features.cornerBushes) {
+        this.createCornerBushes();
+    }
+    
+    if (features.marsRocks) {
+        this.createMarsRocks();
+    }
+    
+    if (features.spaceDomes) {
+        this.createSpaceDomes();
+    }
+    
+    // ✅ NEW: Level 4 D.C. features
+    if (features.dcBushes) {
+        this.createDCBushes();
+    }
+    
+    if (features.dcMonuments) {
+        this.createDCMonuments();
+    }
+    
+    if (features.americanFlags) {
+        this.createAmericanFlags();
+    }
+    
+    if (features.governmentBuildings) {
+        this.createGovernmentBuildings();
+    }
+    
+    // Level 5 features
+    if (features.matrixRain) {
+        this.createMatrixRain();
+    }
+    
+    if (features.hologramGrids) {
+        this.createHologramGrids();
+    }
+    
+    if (features.quantumParticles) {
+        this.createQuantumParticles();
+    }
+    
+    if (features.neonGlow) {
+        this.createNeonGlow();
+    }
+}
+
 // REPLACE the createMarsRocks method in BaseLevel.js with this version
 // This targets the actual visible screen areas you're pointing to
 
@@ -852,67 +1247,6 @@ createSpaceDomes() {
         console.log('✅ D.C. monuments created');
     }
     
-    createAmericanFlags() {
-        console.log('🇺🇸 Creating American flags...');
-        
-        const flagPositions = [
-            { x: -20, z: 10 }, { x: 20, z: 10 },
-            { x: -30, z: -5 }, { x: 30, z: -5 },
-            { x: 0, z: 20 }, { x: 0, z: -30 }
-        ];
-        
-        flagPositions.forEach((pos) => {
-            // Flag pole
-            const poleGeometry = new THREE.CylinderGeometry(0.1, 0.1, 12, 8);
-            const pole = new THREE.Mesh(poleGeometry, this.sharedMaterials.metallic);
-            pole.position.set(pos.x, 6, pos.z);
-            pole.castShadow = true;
-            
-            // Flag (red, white, blue pattern)
-            const flagGeometry = new THREE.PlaneGeometry(4, 2.5);
-            const flagMaterial = new THREE.MeshLambertMaterial({ 
-                color: 0xff0000,  // Red for now, could be texture later
-                side: THREE.DoubleSide
-            });
-            const flag = new THREE.Mesh(flagGeometry, flagMaterial);
-            flag.position.set(pos.x + 2, 10, pos.z);
-            
-            this.decorations.push(pole, flag);
-            this.scene.add(pole);
-            this.scene.add(flag);
-        });
-        
-        console.log('✅ American flags created');
-    }
-    
-    createGovernmentBuildings() {
-        console.log('🏢 Creating government buildings...');
-        
-        // Pentagon-style building
-        const pentagonGeometry = new THREE.CylinderGeometry(8, 10, 6, 5);
-        const pentagon = new THREE.Mesh(pentagonGeometry, this.sharedMaterials.building1);
-        pentagon.position.set(-50, 3, -15);
-        pentagon.castShadow = true;
-        
-        // FBI Building
-        const fbiGeometry = new THREE.BoxGeometry(12, 15, 8);
-        const fbi = new THREE.Mesh(fbiGeometry, this.sharedMaterials.building2);
-        fbi.position.set(50, 7.5, -10);
-        fbi.castShadow = true;
-        
-        // Supreme Court
-        const courtGeometry = new THREE.BoxGeometry(18, 10, 12);
-        const court = new THREE.Mesh(courtGeometry, this.sharedMaterials.marble);
-        court.position.set(-35, 5, 25);
-        court.castShadow = true;
-        
-        this.decorations.push(pentagon, fbi, court);
-        this.scene.add(pentagon);
-        this.scene.add(fbi);
-        this.scene.add(court);
-        
-        console.log('✅ Government buildings created');
-    }
     
     createMatrixRain() {
         console.log('💚 Creating matrix rain effect...');

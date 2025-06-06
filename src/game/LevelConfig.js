@@ -207,8 +207,155 @@ export const LEVEL_CONFIGS = {
         redPlanetSurface: true,
         marsAtmosphere: true
     }
+},
+// Updated LevelConfig.js with Level 4: Washington D.C.
+// Add this Level 4 configuration to your existing LEVEL_CONFIGS object
+
+// LEVEL 4 CONFIGURATION UPDATES for LevelConfig.js
+// Replace the existing Level 4 config with this updated version
+
+// REPLACE your Level 4 config in LevelConfig.js with this corrected version:
+
+4: {
+    // Basic Info
+    name: "Washington D.C.",
+    frogsNeeded: 7,
+    
+    // Environment
+    environment: {
+        type: "dc",
+        groundColor: 0x2F4F2F, // Dark green for D.C. grass
+        fogColor: 0x87CEEB,   // Sky blue
+        backgroundColor: 0x4169E1 // Royal blue D.C. sky
+    },
+    
+    // Assets
+    assets: {
+        headquarters: "whitehouse.png",        
+        leftSoldier: "magasoldier.png",        
+        rightSoldier: "magasoldier.png",       
+        frogImages: "patrioticfrog.png",       
+        goalSign: "whitehouse.png"             
+    },
+    
+    // Layout zones
+    zones: {
+        start: 16,
+        roadStart: 1,
+        roadEnd: 15,
+        medianStart: -2,
+        medianEnd: 1,
+        waterStart: -14,
+        waterEnd: -2,
+        goalArea: -16
+    },
+    
+    // Road vehicles - NOW CORRECT
+    roadVehicles: {
+        lanes: [13, 11, 9, 7, 5],
+        directions: [1, -1, 1, -1, 1],
+        speeds: [15.0, 8.8, 8.3, 12.5, 18.8], 
+        types: ["donkey", "leftist", "limo"], // ✅ CORRECT: These classes now exist
+        vehiclesPerLane: 5, 
+        spacing: 25 
+    },
+    
+    // Water obstacles - NOW CORRECT
+    waterObstacles: {
+        lanes: [-12, -10, -8, -6, -4],
+        directions: [-1, 1, -1, 1, -1],
+        speeds: [7.5, 4.0, 9.4, 5.5, 7.5], 
+        types: ["patriotbus"], // ✅ CORRECT: This class now exists
+        obstaclesPerLane: 3, 
+        spacing: 22,
+        allRideable: true
+    },
+    
+    // Audio
+    music: "PatrioticFroggy.mp3", 
+    
+    // Special features
+    features: {
+        laneMarkings: true,
+        dcBushes: true,           
+        americanFlags: true,      
+        dcMonuments: true,        
+        potomacRiver: true,       
+        governmentBuildings: true 
+    }
+},
+
+5: {
+    // Basic Info  
+    name: "AGI Simulation",
+    frogsNeeded: 8,
+    
+    // Environment
+    environment: {
+        type: "digital",
+        groundColor: 0x000011,
+        fogColor: 0x001122,
+        backgroundColor: 0x000033
+    },
+    
+    // Assets
+    assets: {
+        headquarters: "agi_core.png",
+        leftSoldier: "ai_sentinel.png",
+        rightSoldier: "neural_guardian.png",
+        frogImages: "cyberfrog.png",
+        goalSign: "agi_core.png"
+    },
+    
+    // Layout zones
+    zones: {
+        start: 16,
+        roadStart: 1,
+        roadEnd: 15,
+        medianStart: -2,
+        medianEnd: 1,
+        waterStart: -14,
+        waterEnd: -2,
+        goalArea: -16
+    },
+    
+    // Road vehicles (3x speed - ultimate challenge!)
+    roadVehicles: {
+        lanes: [13, 11, 9, 7, 5],
+        directions: [1, -1, 1, -1, 1],
+        speeds: [18.0, 10.5, 9.9, 15.0, 22.5], // 3x faster than Level 1
+        types: ["virus_program", "firewall_agent", "ai_drone"],
+        vehiclesPerLane: 4,
+        spacing: 30
+    },
+    
+    // "Water" obstacles (data streams)
+    waterObstacles: {
+        lanes: [-12, -10, -8, -6, -4],
+        directions: [-1, 1, -1, 1, -1],
+        speeds: [9.0, 4.8, 11.3, 6.6, 9.0], // 3x faster than Level 1
+        types: ["quantum_platform", "data_stream", "neural_link"],
+        obstaclesPerLane: 3,
+        spacing: 25,
+        allRideable: true
+    },
+    
+    // Audio
+    music: "DigitalRealm.mp3",
+    
+    // Special features
+    features: {
+        laneMarkings: true,
+        matrixRain: true,
+        hologramGrids: true,
+        quantumParticles: true,
+        neonGlow: true,
+        digitalStructures: true
+    }
 }
 };
+
+
 
 // Utility functions for level management
 export class LevelConfigManager {

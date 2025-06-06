@@ -189,18 +189,14 @@ class VehicleFactory {
     
     createLevel4Vehicle(type) {
         switch (type) {
-            case 'secret_service_suv':
-                return new Level4Vehicle(this.scene, 'secret_service_suv');
-            case 'capitol_police':
-                return new Level4Vehicle(this.scene, 'capitol_police');
-            case 'political_limo':
-                return new Level4Vehicle(this.scene, 'political_limo');
-            case 'protest_van':
-                return new Level4Vehicle(this.scene, 'protest_van');
-            case 'media_truck':
-                return new Level4Vehicle(this.scene, 'media_truck');
+            case 'donkey':
+                return new DonkeyVehicle(this.scene);
+            case 'leftist':
+                return new LeftistVehicle(this.scene);
+            case 'limo':
+                return new LimoVehicle(this.scene);
             default:
-                return new Level4Vehicle(this.scene, 'secret_service_suv');
+                return new DonkeyVehicle(this.scene);
         }
     }
     
@@ -265,17 +261,12 @@ class ObstacleFactory {
     }
     
     createLevel4Obstacle(type) {
-        if (type === 'government_boat') {
-            return new Level4GovernmentBoat(this.scene);
-        }
-        if (type === 'coast_guard') {
-            return new Level4CoastGuard(this.scene);
-        }
-        if (type === 'presidential_yacht') {
-            return new Level4PresidentialYacht(this.scene);
+        if (type === 'patriotbus') {
+            return new PatriotBus(this.scene);
         }
         return new Vehicle(this.scene, 'log');
     }
+    
     
     createLevel5Obstacle(type) {
         if (type === 'quantum_platform') {
@@ -788,6 +779,371 @@ class RoboVan extends Vehicle {
         }
     }
 }
+
+class DonkeyVehicle extends Vehicle {
+    constructor(scene) {
+        super(scene, 'donkey');
+        this.isRideable = false;
+    }
+    
+    create() {
+        console.log(`🫏 Creating Level 4 Donkey vehicle`);
+        
+        const size = { width: 4.5, height: 2.5 };
+        const geometry = new THREE.PlaneGeometry(size.width, size.height);
+        
+        const texture = this.loadLevel4Texture('donkey.png');
+        
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            alphaTest: 0.1,
+            side: THREE.DoubleSide,
+            color: 0xffffff
+        });
+        
+        this.mesh = new THREE.Mesh(geometry, material);
+        this.mesh.rotation.x = -Math.PI / 2;  
+        this.mesh.rotation.y = 0;             
+        this.mesh.rotation.z = Math.PI;       
+        this.mesh.position.y = 5.0;          
+        
+        this.scene.add(this.mesh);
+        console.log(`✅ Donkey vehicle created`);
+    }
+    
+    loadLevel4Texture(filename) {
+        const textureLoader = new THREE.TextureLoader();
+        return textureLoader.load(filename, (texture) => {
+            texture.wrapS = THREE.ClampToEdgeWrapping;
+            texture.wrapT = THREE.ClampToEdgeWrapping;
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            texture.flipY = false;
+        });
+    }
+    
+    setPosition(x, y, z) {
+        this.position.set(x, y, z);
+        if (this.mesh) {
+            this.mesh.position.set(x, 5.0, z);
+        }
+    }
+    
+    setVelocity(vx, vy, vz) {
+        this.velocity.set(vx, vy, vz);
+        this.speed = this.velocity.length();
+        this.movingRight = vx > 0;
+        this.updateRotationBasedOnMovement();
+    }
+    
+    updateRotationBasedOnMovement() {
+        if (!this.mesh || this.velocity.length() === 0) return;
+        this.mesh.rotation.x = -Math.PI / 2;  
+        this.mesh.rotation.y = 0;             
+        if (this.movingRight) {
+            this.mesh.rotation.z = -Math.PI;  
+            this.mesh.scale.x = Math.abs(this.mesh.scale.x);
+        } else {
+            this.mesh.rotation.z = -Math.PI;  
+            this.mesh.scale.x = -Math.abs(this.mesh.scale.x);
+        }
+    }
+    
+    update(deltaTime) {
+        this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
+        if (this.mesh) {
+            this.mesh.position.x = this.position.x;
+            this.mesh.position.y = 5.0;
+            this.mesh.position.z = this.position.z;
+        }
+    }
+    
+    dispose() {
+        if (this.mesh) {
+            this.scene.remove(this.mesh);
+            if (this.mesh.material) {
+                if (this.mesh.material.map) this.mesh.material.map.dispose();
+                this.mesh.material.dispose();
+            }
+            if (this.mesh.geometry) this.mesh.geometry.dispose();
+            this.mesh = null;
+        }
+    }
+}
+
+class LeftistVehicle extends Vehicle {
+    constructor(scene) {
+        super(scene, 'leftist');
+        this.isRideable = false;
+    }
+    
+    create() {
+        console.log(`🚗 Creating Level 4 Leftist vehicle`);
+        
+        const size = { width: 4.0, height: 2.3 };
+        const geometry = new THREE.PlaneGeometry(size.width, size.height);
+        
+        const texture = this.loadLevel4Texture('leftist.png');
+        
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            alphaTest: 0.1,
+            side: THREE.DoubleSide,
+            color: 0xffffff
+        });
+        
+        this.mesh = new THREE.Mesh(geometry, material);
+        this.mesh.rotation.x = -Math.PI / 2;  
+        this.mesh.rotation.y = 0;             
+        this.mesh.rotation.z = Math.PI;       
+        this.mesh.position.y = 5.0;          
+        
+        this.scene.add(this.mesh);
+        console.log(`✅ Leftist vehicle created`);
+    }
+    
+    loadLevel4Texture(filename) {
+        const textureLoader = new THREE.TextureLoader();
+        return textureLoader.load(filename, (texture) => {
+            texture.wrapS = THREE.ClampToEdgeWrapping;
+            texture.wrapT = THREE.ClampToEdgeWrapping;
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            texture.flipY = false;
+        });
+    }
+    
+    setPosition(x, y, z) {
+        this.position.set(x, y, z);
+        if (this.mesh) {
+            this.mesh.position.set(x, 5.0, z);
+        }
+    }
+    
+    setVelocity(vx, vy, vz) {
+        this.velocity.set(vx, vy, vz);
+        this.speed = this.velocity.length();
+        this.movingRight = vx > 0;
+        this.updateRotationBasedOnMovement();
+    }
+    
+    updateRotationBasedOnMovement() {
+        if (!this.mesh || this.velocity.length() === 0) return;
+        this.mesh.rotation.x = -Math.PI / 2;  
+        this.mesh.rotation.y = 0;             
+        if (this.movingRight) {
+            this.mesh.rotation.z = -Math.PI;  
+            this.mesh.scale.x = Math.abs(this.mesh.scale.x);
+        } else {
+            this.mesh.rotation.z = -Math.PI;  
+            this.mesh.scale.x = -Math.abs(this.mesh.scale.x);
+        }
+    }
+    
+    update(deltaTime) {
+        this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
+        if (this.mesh) {
+            this.mesh.position.x = this.position.x;
+            this.mesh.position.y = 5.0;
+            this.mesh.position.z = this.position.z;
+        }
+    }
+    
+    dispose() {
+        if (this.mesh) {
+            this.scene.remove(this.mesh);
+            if (this.mesh.material) {
+                if (this.mesh.material.map) this.mesh.material.map.dispose();
+                this.mesh.material.dispose();
+            }
+            if (this.mesh.geometry) this.mesh.geometry.dispose();
+            this.mesh = null;
+        }
+    }
+}
+
+class LimoVehicle extends Vehicle {
+    constructor(scene) {
+        super(scene, 'limo');
+        this.isRideable = false;
+    }
+    
+    create() {
+        console.log(`🚙 Creating Level 4 Limo vehicle`);
+        
+        const size = { width: 6.0, height: 2.5 }; // Longer for limo
+        const geometry = new THREE.PlaneGeometry(size.width, size.height);
+        
+        const texture = this.loadLevel4Texture('limo.png');
+        
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            alphaTest: 0.1,
+            side: THREE.DoubleSide,
+            color: 0xffffff
+        });
+        
+        this.mesh = new THREE.Mesh(geometry, material);
+        this.mesh.rotation.x = -Math.PI / 2;  
+        this.mesh.rotation.y = 0;             
+        this.mesh.rotation.z = Math.PI;       
+        this.mesh.position.y = 5.0;          
+        
+        this.scene.add(this.mesh);
+        console.log(`✅ Limo vehicle created`);
+    }
+    
+    loadLevel4Texture(filename) {
+        const textureLoader = new THREE.TextureLoader();
+        return textureLoader.load(filename, (texture) => {
+            texture.wrapS = THREE.ClampToEdgeWrapping;
+            texture.wrapT = THREE.ClampToEdgeWrapping;
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            texture.flipY = false;
+        });
+    }
+    
+    setPosition(x, y, z) {
+        this.position.set(x, y, z);
+        if (this.mesh) {
+            this.mesh.position.set(x, 5.0, z);
+        }
+    }
+    
+    setVelocity(vx, vy, vz) {
+        this.velocity.set(vx, vy, vz);
+        this.speed = this.velocity.length();
+        this.movingRight = vx > 0;
+        this.updateRotationBasedOnMovement();
+    }
+    
+    updateRotationBasedOnMovement() {
+        if (!this.mesh || this.velocity.length() === 0) return;
+        this.mesh.rotation.x = -Math.PI / 2;  
+        this.mesh.rotation.y = 0;             
+        if (this.movingRight) {
+            this.mesh.rotation.z = -Math.PI;  
+            this.mesh.scale.x = Math.abs(this.mesh.scale.x);
+        } else {
+            this.mesh.rotation.z = -Math.PI;  
+            this.mesh.scale.x = -Math.abs(this.mesh.scale.x);
+        }
+    }
+    
+    update(deltaTime) {
+        this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
+        if (this.mesh) {
+            this.mesh.position.x = this.position.x;
+            this.mesh.position.y = 5.0;
+            this.mesh.position.z = this.position.z;
+        }
+    }
+    
+    dispose() {
+        if (this.mesh) {
+            this.scene.remove(this.mesh);
+            if (this.mesh.material) {
+                if (this.mesh.material.map) this.mesh.material.map.dispose();
+                this.mesh.material.dispose();
+            }
+            if (this.mesh.geometry) this.mesh.geometry.dispose();
+            this.mesh = null;
+        }
+    }
+}
+
+class PatriotBus extends Vehicle {
+    constructor(scene) {
+        super(scene, 'patriotbus');
+        this.isRideable = true; // Rideable transport
+    }
+    
+    create() {
+        console.log(`🚌 Creating Level 4 Patriot Bus`);
+        
+        const size = { width: 8.0, height: 4.0 }; // Large bus
+        const geometry = new THREE.PlaneGeometry(size.width, size.height);
+        
+        const texture = this.loadPatriotBusTexture('patriotbus.png');
+        
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            alphaTest: 0.1,
+            side: THREE.DoubleSide
+        });
+        
+        this.mesh = new THREE.Mesh(geometry, material);
+        this.mesh.rotation.x = -Math.PI / 2;
+        this.mesh.rotation.y = 0;
+        this.mesh.rotation.z = -Math.PI;
+        this.mesh.position.y = 0.1; // Water level
+        
+        this.scene.add(this.mesh);
+        console.log(`✅ Patriot Bus created`);
+    }
+    
+    loadPatriotBusTexture(filename) {
+        const textureLoader = new THREE.TextureLoader();
+        return textureLoader.load(filename);
+    }
+    
+    setPosition(x, y, z) {
+        this.position.set(x, y, z);
+        if (this.mesh) {
+            this.mesh.position.set(x, 0.1, z);
+        }
+    }
+    
+    setVelocity(vx, vy, vz) {
+        this.velocity.set(vx, vy, vz);
+        this.speed = this.velocity.length();
+        this.movingRight = vx > 0;
+        this.updateRotationBasedOnMovement();
+    }
+    
+    updateRotationBasedOnMovement() {
+        if (!this.mesh || this.velocity.length() === 0) return;
+        
+        this.mesh.rotation.x = Math.PI / 2;
+        this.mesh.rotation.y = Math.PI;
+        
+        if (this.movingRight) {
+            this.mesh.rotation.z = -Math.PI;
+            this.mesh.scale.x = Math.abs(this.mesh.scale.x);
+        } else {
+            this.mesh.rotation.z = -Math.PI;
+            this.mesh.scale.x = -Math.abs(this.mesh.scale.x);
+        }
+    }
+    
+    update(deltaTime) {
+        this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
+        if (this.mesh) {
+            this.mesh.position.x = this.position.x;
+            this.mesh.position.y = 0.1;
+            this.mesh.position.z = this.position.z;
+        }
+    }
+    
+    dispose() {
+        if (this.mesh) {
+            this.scene.remove(this.mesh);
+            if (this.mesh.material) {
+                if (this.mesh.material.map) this.mesh.material.map.dispose();
+                this.mesh.material.dispose();
+            }
+            if (this.mesh.geometry) this.mesh.geometry.dispose();
+            this.mesh = null;
+        }
+    }
+}
+
+
 // Level 4 Vehicle Class (Washington D.C.)
 class Level4Vehicle extends Vehicle {
     constructor(scene, vehicleType) {

@@ -26,7 +26,8 @@ export class AudioManager {
             await this.loadMusic('landing', this.getAudioPath('PatriotFrog.mp3'));      // 🎵 Landing page music
             await this.loadMusic('background', this.getAudioPath('FeelingFroggish.mp3')); // 🎵 Level 1 music
             await this.loadMusic('level2', this.getAudioPath('Level2song.mp3'));        // 🎵 Level 2 music
-            await this.loadMusic('level3', this.getAudioPath('MarsMission.mp3'));       // 🎵 NEW: Level 3 music
+            await this.loadMusic('level3', this.getAudioPath('MarsMission.mp3'));       // 🎵 Level 3 music
+            await this.loadMusic('level4', this.getAudioPath('PatrioticFroggy.mp3'));   // 🎵 NEW: Level 4 D.C. music
             
             // Load SFX
             await this.loadSFX('jump', this.getAudioPath('jump.mp3'));
@@ -34,7 +35,7 @@ export class AudioManager {
             await this.loadSFX('levelfinish', this.getAudioPath('levelfinish.mp3'));
             
             this.isInitialized = true;
-            console.log('🎵 Audio system initialized with Level 3 Mars music support');
+            console.log('🎵 Audio system initialized with Level 4 D.C. music support');
             
         } catch (error) {
             console.warn('Audio initialization failed:', error);
@@ -220,7 +221,7 @@ export class AudioManager {
         console.log('🎵 Autoplay unblock listeners added - music will start on first user interaction');
     }
     
-    // ✅ UPDATED: Play level-specific music with Level 3 support
+    // ✅ UPDATED: Play level-specific music with Level 4 support
     playLevelMusic(levelNumber) {
         let musicName;
         
@@ -233,6 +234,9 @@ export class AudioManager {
                 break;
             case 3:
                 musicName = 'level3'; // MarsMission.mp3
+                break;
+            case 4:
+                musicName = 'level4'; // PatrioticFroggy.mp3 ✅ NEW
                 break;
             default:
                 musicName = 'background'; // Fallback to Level 1 music
@@ -335,7 +339,7 @@ export class AudioManager {
         }, stepTime);
     }
     
-    // ✅ UPDATED: Smooth transition between level music with Level 3 support
+    // ✅ UPDATED: Smooth transition between level music with Level 4 support
     switchToLevelMusic(levelNumber, fadeOutDuration = 800, fadeInDelay = 300) {
         let musicName;
         
@@ -347,7 +351,10 @@ export class AudioManager {
                 musicName = 'level2';
                 break;
             case 3:
-                musicName = 'level3'; // MarsMission.mp3
+                musicName = 'level3';
+                break;
+            case 4:
+                musicName = 'level4'; // PatrioticFroggy.mp3 ✅ NEW
                 break;
             default:
                 musicName = 'background';

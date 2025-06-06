@@ -82,7 +82,7 @@ export class Player {
         console.log('🎯 Creating ground indicator circle...');
         
         // Create a subtle ground circle/shadow under the frog
-        const circleGeometry = new THREE.RingGeometry(0.8, 1.2, 16);
+        const circleGeometry = new THREE.RingGeometry(0.3, 0.5, 16);
         const circleMaterial = new THREE.MeshBasicMaterial({
             color: 0x00ff88,        // Green color
             transparent: true,

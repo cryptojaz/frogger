@@ -62,7 +62,7 @@ export class LandingPage {
                         
                         <div class="landing-footer">
                             <p>Built with Three.js • Modern Web Technology</p>
-                            <div class="version-info">v1.0.5</div>
+                            <div class="version-info">v1.1.0</div>
                         </div>
                     </div>
                 </div>
@@ -86,7 +86,7 @@ export class LandingPage {
                             <div class="game-description">
                                 <p>
                                     Help the frog cross dangerous roads and rivers in this modern 3D homage of the classic 1981 arcade game!
-                                    Navigate through 5 unique levels, from urban streets to mystical sky ruins.
+                                    Navigate through multiple unique levels, from corporate headquarters to space colonies.
                                     Avoid cars, ride logs, and reach the lily pads safely!
                                 </p>
                             </div>
@@ -122,12 +122,17 @@ export class LandingPage {
                             </div>
                             
                             <div class="levels-section">
-                                <h3>🌍 5 Unique Levels</h3>
+                                <h3>🌍 Game Levels</h3>
                                 <div class="levels-grid">
-                                    <div class="level-card active">
+                                    <div class="level-card ready">
                                         <div class="level-number">1</div>
-                                        <h4>Classic Frogger Homage</h4>
-                                        <p>Urban roads and rivers - A 3D homage of the original 1981 game</p>
+                                        <h4>Green Frog Labs HQ</h4>
+                                        <p>Corporate headquarters with urban roads and rivers - A 3D homage of the original 1981 game</p>
+                                        <div class="level-features">
+                                            <span class="feature-tag">🏢 Corporate</span>
+                                            <span class="feature-tag">🚗 Urban Traffic</span>
+                                            <span class="feature-tag">🏞️ Rivers</span>
+                                        </div>
                                         <div class="level-inspiration">
                                             <span class="inspiration-label">Inspired by:</span>
                                             <span class="inspiration-game">Frogger (1981) - Original Arcade</span>
@@ -135,48 +140,148 @@ export class LandingPage {
                                         <div class="level-status ready">✅ Ready to Play</div>
                                     </div>
                                     
-                                    <div class="level-card">
+                                    <div class="level-card ready">
                                         <div class="level-number">2</div>
-                                        <h4>Jungle Swamp</h4>
-                                        <p>Dense jungle with muddy water, vines, and snapping crocodiles</p>
+                                        <h4>InfoWars Jungle Base</h4>
+                                        <p>Dense jungle swamp with muddy paths, crocodiles, and conspiracy theories</p>
+                                        <div class="level-features">
+                                            <span class="feature-tag">🌿 Jungle</span>
+                                            <span class="feature-tag">🐊 Crocodiles</span>
+                                            <span class="feature-tag">📡 Info Base</span>
+                                        </div>
                                         <div class="level-inspiration">
                                             <span class="inspiration-label">Inspired by:</span>
                                             <span class="inspiration-game">Frogger 2: Swampy's Revenge (2000)</span>
                                         </div>
-                                             <div class="level-status ready">✅ Ready to Play</div>
+                                        <div class="level-status ready">✅ Ready to Play</div>
                                     </div>
                                     
-                                    <div class="level-card">
+                                    <div class="level-card ready">
                                         <div class="level-number">3</div>
-                                        <h4>Futuristic City</h4>
-                                        <p>Neon-lit metropolis with hovercars and laser grids</p>
+                                        <h4>SpaceX Mars Colony</h4>
+                                        <p>Red planet surface with rovers, aliens, and space technology</p>
+                                        <div class="level-features">
+                                            <span class="feature-tag">🚀 Space</span>
+                                            <span class="feature-tag">👽 Aliens</span>
+                                            <span class="feature-tag">🪐 Mars</span>
+                                        </div>
                                         <div class="level-inspiration">
                                             <span class="inspiration-label">Inspired by:</span>
                                             <span class="inspiration-game">Frogger 3D (2011) & Frogger Beyond (2002)</span>
                                         </div>
-                                        <div class="level-status coming-soon">🚧 Coming Soon</div>
+                                        <div class="level-status ready">✅ Ready to Play</div>
                                     </div>
                                     
-                                    <div class="level-card">
+                                    <div class="level-card ready">
                                         <div class="level-number">4</div>
-                                        <h4>Arctic Tundra</h4>
-                                        <p>Snowy landscape with slippery ice and penguins</p>
+                                        <h4>White House Washington D.C.</h4>
+                                        <p>Political power center with government vehicles and patriotic themes</p>
+                                        <div class="level-features">
+                                            <span class="feature-tag">🏛️ Government</span>
+                                            <span class="feature-tag">🇺🇸 Patriotic</span>
+                                            <span class="feature-tag">🚔 Security</span>
+                                        </div>
                                         <div class="level-inspiration">
                                             <span class="inspiration-label">Inspired by:</span>
-                                            <span class="inspiration-game">Frogger 2: Swampy's Revenge (2000) - Ice World</span>
+                                            <span class="inspiration-game">Original Frogger Concepts</span>
                                         </div>
-                                        <div class="level-status coming-soon">🚧 Coming Soon</div>
+                                        <div class="level-status ready">✅ Ready to Play</div>
                                     </div>
                                     
-                                    <div class="level-card">
+                                    <div class="level-card planned">
                                         <div class="level-number">5</div>
-                                        <h4>Sky Ruins</h4>
-                                        <p>Ancient ruins floating in clouds with birds and mystical elements</p>
+                                        <h4>AGI Data Center</h4>
+                                        <p>Futuristic AI facility with robotic vehicles and digital hazards</p>
+                                        <div class="level-features">
+                                            <span class="feature-tag">🤖 AI</span>
+                                            <span class="feature-tag">💻 Digital</span>
+                                            <span class="feature-tag">⚡ Electric</span>
+                                        </div>
                                         <div class="level-inspiration">
                                             <span class="inspiration-label">Inspired by:</span>
-                                            <span class="inspiration-game">Frogger and the Rumbling Ruins (2022)</span>
+                                            <span class="inspiration-game">Cyberpunk Frogger Concepts</span>
                                         </div>
-                                        <div class="level-status coming-soon">🚧 Coming Soon</div>
+                                        <div class="level-status planned">🔮 Planned</div>
+                                    </div>
+                                    
+                                    <div class="level-card future">
+                                        <div class="level-number">6</div>
+                                        <h4>Ancient Egypt Pyramids</h4>
+                                        <p>Desert sands with chariots, sphinx guardians, and ancient mysteries</p>
+                                        <div class="level-features">
+                                            <span class="feature-tag">🏺 Ancient</span>
+                                            <span class="feature-tag">🐪 Desert</span>
+                                            <span class="feature-tag">👑 Pharaoh</span>
+                                        </div>
+                                        <div class="level-inspiration">
+                                            <span class="inspiration-label">Theme:</span>
+                                            <span class="inspiration-game">Historical Adventure</span>
+                                        </div>
+                                        <div class="level-status future">🔭 Future</div>
+                                    </div>
+                                    
+                                    <div class="level-card future">
+                                        <div class="level-number">7</div>
+                                        <h4>Medieval Castle Siege</h4>
+                                        <p>Knight battles with catapults, dragons, and medieval chaos</p>
+                                        <div class="level-features">
+                                            <span class="feature-tag">⚔️ Medieval</span>
+                                            <span class="feature-tag">🐉 Dragons</span>
+                                            <span class="feature-tag">🏰 Castle</span>
+                                        </div>
+                                        <div class="level-inspiration">
+                                            <span class="inspiration-label">Theme:</span>
+                                            <span class="inspiration-game">Fantasy Adventure</span>
+                                        </div>
+                                        <div class="level-status future">🔭 Future</div>
+                                    </div>
+                                    
+                                    <div class="level-card future">
+                                        <div class="level-number">8</div>
+                                        <h4>Wild West Frontier</h4>
+                                        <p>Cowboy town with stagecoaches, tumbleweeds, and saloon shootouts</p>
+                                        <div class="level-features">
+                                            <span class="feature-tag">🤠 Western</span>
+                                            <span class="feature-tag">🐎 Horses</span>
+                                            <span class="feature-tag">🌵 Desert</span>
+                                        </div>
+                                        <div class="level-inspiration">
+                                            <span class="inspiration-label">Theme:</span>
+                                            <span class="inspiration-game">Wild West Adventure</span>
+                                        </div>
+                                        <div class="level-status future">🔭 Future</div>
+                                    </div>
+                                    
+                                    <div class="level-card future">
+                                        <div class="level-number">9</div>
+                                        <h4>Underwater Atlantis</h4>
+                                        <p>Lost city beneath the waves with sea creatures and ancient technology</p>
+                                        <div class="level-features">
+                                            <span class="feature-tag">🌊 Ocean</span>
+                                            <span class="feature-tag">🐠 Sea Life</span>
+                                            <span class="feature-tag">🔱 Atlantis</span>
+                                        </div>
+                                        <div class="level-inspiration">
+                                            <span class="inspiration-label">Theme:</span>
+                                            <span class="inspiration-game">Mythical Adventure</span>
+                                        </div>
+                                        <div class="level-status future">🔭 Future</div>
+                                    </div>
+                                    
+                                    <div class="level-card future">
+                                        <div class="level-number">10</div>
+                                        <h4>Cyberpunk Neo-Tokyo</h4>
+                                        <p>Neon-lit metropolis with hovercars, holograms, and cyber-enhanced chaos</p>
+                                        <div class="level-features">
+                                            <span class="feature-tag">🌃 Cyberpunk</span>
+                                            <span class="feature-tag">🚁 Hovercars</span>
+                                            <span class="feature-tag">💫 Neon</span>
+                                        </div>
+                                        <div class="level-inspiration">
+                                            <span class="inspiration-label">Theme:</span>
+                                            <span class="inspiration-game">Futuristic Adventure</span>
+                                        </div>
+                                        <div class="level-status future">🔭 Future</div>
                                     </div>
                                 </div>
                             </div>
@@ -189,7 +294,9 @@ export class LandingPage {
                                     <div class="feature">🎵 Dynamic audio system with level-specific music</div>
                                     <div class="feature">📱 Mobile-friendly touch controls</div>
                                     <div class="feature">🎮 Classic arcade gameplay with modern 3D graphics</div>
-                                    <div class="feature">🏆 Progressive difficulty across 5 unique worlds</div>
+                                    <div class="feature">🏆 Progressive difficulty across multiple unique worlds</div>
+                                    <div class="feature">🌍 10 planned levels spanning different eras and themes</div>
+                                    <div class="feature">🎭 Unique characters and vehicles for each level</div>
                                 </div>
                             </div>
                         </div>
@@ -512,7 +619,7 @@ export class LandingPage {
                     border-radius: 20px;
                     max-width: 90vw;
                     max-height: 90vh;
-                    width: 800px;
+                    width: 900px;
                     overflow-y: auto;
                     color: white;
                     box-shadow: 0 20px 60px rgba(0, 255, 150, 0.3);
@@ -606,9 +713,32 @@ export class LandingPage {
                     color: #ffd700;
                 }
                 
+                /* Enhanced Levels Grid */
                 .levels-grid {
                     display: grid;
-                    gap: 15px;
+                    gap: 20px;
+                    max-height: 500px;
+                    overflow-y: auto;
+                    padding-right: 10px;
+                }
+                
+                /* Scrollbar styling */
+                .levels-grid::-webkit-scrollbar {
+                    width: 8px;
+                }
+                
+                .levels-grid::-webkit-scrollbar-track {
+                    background: rgba(0, 0, 0, 0.3);
+                    border-radius: 4px;
+                }
+                
+                .levels-grid::-webkit-scrollbar-thumb {
+                    background: rgba(0, 255, 150, 0.5);
+                    border-radius: 4px;
+                }
+                
+                .levels-grid::-webkit-scrollbar-thumb:hover {
+                    background: rgba(0, 255, 150, 0.7);
                 }
                 
                 .level-card {
@@ -619,14 +749,29 @@ export class LandingPage {
                     transition: all 0.3s ease;
                 }
                 
-                .level-card.active {
+                .level-card.ready {
                     border-color: #00ff96;
                     box-shadow: 0 0 20px rgba(0, 255, 150, 0.3);
+                }
+                
+                .level-card.planned {
+                    border-color: #ffd700;
+                    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+                }
+                
+                .level-card.future {
+                    border-color: rgba(128, 128, 128, 0.3);
+                    opacity: 0.8;
                 }
                 
                 .level-card:hover {
                     transform: translateY(-5px);
                     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                }
+                
+                .level-card.future:hover {
+                    border-color: rgba(255, 255, 255, 0.4);
+                    opacity: 1;
                 }
                 
                 .level-number {
@@ -643,6 +788,14 @@ export class LandingPage {
                     margin-bottom: 10px;
                 }
                 
+                .level-card.planned .level-number {
+                    background: linear-gradient(45deg, #ffd700, #ffaa00);
+                }
+                
+                .level-card.future .level-number {
+                    background: linear-gradient(45deg, #888888, #aaaaaa);
+                }
+                
                 .level-card h4 {
                     margin: 10px 0;
                     color: #fff;
@@ -653,6 +806,34 @@ export class LandingPage {
                     color: #ccc;
                     margin-bottom: 15px;
                     line-height: 1.4;
+                }
+                
+                .level-features {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 5px;
+                    margin-bottom: 15px;
+                }
+                
+                .feature-tag {
+                    background: rgba(0, 255, 150, 0.2);
+                    color: #00ff96;
+                    padding: 3px 8px;
+                    border-radius: 12px;
+                    font-size: 0.8rem;
+                    border: 1px solid rgba(0, 255, 150, 0.3);
+                }
+                
+                .level-card.planned .feature-tag {
+                    background: rgba(255, 215, 0, 0.2);
+                    color: #ffd700;
+                    border-color: rgba(255, 215, 0, 0.3);
+                }
+                
+                .level-card.future .feature-tag {
+                    background: rgba(128, 128, 128, 0.2);
+                    color: #aaaaaa;
+                    border-color: rgba(128, 128, 128, 0.3);
                 }
                 
                 .level-inspiration {
@@ -688,10 +869,16 @@ export class LandingPage {
                     border: 1px solid #00ff00;
                 }
                 
-                .level-status.coming-soon {
-                    background: rgba(255, 165, 0, 0.2);
-                    color: #ffa500;
-                    border: 1px solid #ffa500;
+                .level-status.planned {
+                    background: rgba(255, 215, 0, 0.2);
+                    color: #ffd700;
+                    border: 1px solid #ffd700;
+                }
+                
+                .level-status.future {
+                    background: rgba(128, 128, 128, 0.2);
+                    color: #aaaaaa;
+                    border: 1px solid #aaaaaa;
                 }
                 
                 .features-list {
@@ -766,6 +953,14 @@ export class LandingPage {
                     
                     .info-modal-header h2 {
                         font-size: 1.4rem;
+                    }
+                    
+                    .level-features {
+                        justify-content: center;
+                    }
+                    
+                    .levels-grid {
+                        max-height: 400px;
                     }
                 }
                 
