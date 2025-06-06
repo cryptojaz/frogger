@@ -642,11 +642,37 @@ async setFrogCountForLevel(level) {
         // ✅ DYNAMIC IMPORT: Handle the import properly
         const { LevelConfigManager } = await import('./LevelConfig.js');
         const config = LevelConfigManager.getConfig(level);
-        this.totalFrogsNeeded = config ? config.frogsNeeded : 4;
-        console.log(`🐸 Level ${level}: ${this.totalFrogsNeeded} frogs needed`);
+        
+        if (config && config.frogsNeeded) {
+            this.totalFrogsNeeded = config.frogsNeeded;
+            console.log(`🐸 Level ${level}: ${this.totalFrogsNeeded} frogs needed (from config)`);
+        } else {
+            // ✅ FALLBACK: Manual assignment if config fails
+            const manualFrogCounts = {
+                1: 4,
+                2: 5, 
+                3: 6,
+                4: 7, // ✅ FIXED: Level 4 should have 7 frogs
+                5: 8
+            };
+            
+            this.totalFrogsNeeded = manualFrogCounts[level] || 4;
+            console.log(`🐸 Level ${level}: ${this.totalFrogsNeeded} frogs needed (manual fallback)`);
+        }
     } catch (error) {
-        console.warn(`⚠️ Could not load config for Level ${level}, using default 4 frogs`);
-        this.totalFrogsNeeded = 4;
+        console.warn(`⚠️ Could not load config for Level ${level}, using manual assignment`);
+        
+        // ✅ EMERGENCY FALLBACK: Manual assignment
+        const emergencyFrogCounts = {
+            1: 4,
+            2: 5,
+            3: 6, 
+            4: 7, // ✅ FIXED: Level 4 = 7 frogs
+            5: 8
+        };
+        
+        this.totalFrogsNeeded = emergencyFrogCounts[level] || 4;
+        console.log(`🐸 Emergency: Level ${level} set to ${this.totalFrogsNeeded} frogs`);
     }
 }
 // ADD this method to Game.js:

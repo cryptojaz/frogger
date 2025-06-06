@@ -267,7 +267,7 @@ updateLevel(level) {
             1: "1: Metaverse City",
             2: "2: Jungle Swamp",
             3: "3: Mars Colony", // ✅ Add Mars Colony
-            4: "4: Coming Soon",
+            4: "4: Washington D.C.",
             5: "5: Coming Soon"
         };
         
@@ -329,7 +329,7 @@ showLevelComplete(nextLevel) {
             continueBtn.textContent = 'ENTER MARS COLONY'; // ✅ Enable Level 3
             continueBtn.disabled = false;
         } else if (nextLevel === 4) {
-            continueBtn.textContent = 'LEVEL 4 COMING SOON';
+            continueBtn.textContent = 'ENTER WASHINGTON D.C.';
             continueBtn.disabled = true;
         } else {
             continueBtn.textContent = 'CONTINUE';

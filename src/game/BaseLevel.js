@@ -321,46 +321,103 @@ async createSafeArea(startZ, endZ) {
         await this.createHeadquarters(zPosition);
     }
     
-// REPLACE the createHeadquarters method in BaseLevel.js with this version:
-
-async createHeadquarters(zPosition) {
-    // Check if this is Level 4 (D.C.) for enhanced White House
-    if (this.levelNumber === 4) {
-        // Create White House style building - wider and more presidential
-        const buildingGeometry = new THREE.BoxGeometry(20, 12, 6); // Wider for White House
-        const building = new THREE.Mesh(buildingGeometry, this.sharedMaterials.whitehouse);
-        building.position.set(0, 6, zPosition);
-        building.castShadow = true;
-        building.receiveShadow = true;
-        
-        // ✅ REMOVED: No more columns - clean White House look
-        
-        // Add White House image texture
-        await this.addHeadquartersImage(building);
-        
-        this.goals.push(building);
-        this.decorations.push(building);
-        this.scene.add(building);
-    } else {
-        // Default building for other levels
-        const buildingGeometry = new THREE.BoxGeometry(12, 8, 4);
-        const building = new THREE.Mesh(buildingGeometry, this.sharedMaterials.goalBuilding);
-        building.position.set(0, 4, zPosition);
-        building.castShadow = true;
-        building.receiveShadow = true;
-        
-        // Add headquarters image
-        await this.addHeadquartersImage(building);
-        
-        this.goals.push(building);
-        this.decorations.push(building);
-        this.scene.add(building);
+    async createHeadquarters(zPosition) {
+        // Check if this is Level 4 (D.C.) for enhanced White House
+        if (this.levelNumber === 4) {
+            // ✅ IMPROVED: Better proportioned White House - shorter and moved back
+            const buildingWidth = 16;  // Slightly narrower
+            const buildingHeight = 12;  // ✅ REDUCED: From 12 to 8 for better proportions
+            const buildingDepth = 5;   // Slightly shallower
+            
+            // ✅ MOVED BACK: Position building further from river edge
+            const buildingZ = zPosition - 3; // Move 3 units back from edge
+            
+            const buildingGeometry = new THREE.BoxGeometry(buildingWidth, buildingHeight, buildingDepth);
+            const building = new THREE.Mesh(buildingGeometry, this.sharedMaterials.whitehouse);
+            
+            // ✅ UPDATED: Position with new height and Z position
+            building.position.set(0, buildingHeight / 2, buildingZ); // Centered on new height
+            building.castShadow = true;
+            building.receiveShadow = true;
+            
+            // Add White House image texture
+            await this.addHeadquartersImage(building, buildingWidth, buildingHeight, buildingDepth);
+            
+            this.goals.push(building);
+            this.decorations.push(building);
+            this.scene.add(building);
+            
+            console.log(`🏛️ White House created: ${buildingWidth}x${buildingHeight}x${buildingDepth} at Z=${buildingZ}`);
+        } else {
+            // Default building for other levels
+            const buildingGeometry = new THREE.BoxGeometry(12, 8, 4);
+            const building = new THREE.Mesh(buildingGeometry, this.sharedMaterials.goalBuilding);
+            building.position.set(0, 4, zPosition);
+            building.castShadow = true;
+            building.receiveShadow = true;
+            
+            // Add headquarters image
+            await this.addHeadquartersImage(building, 12, 8, 4);
+            
+            this.goals.push(building);
+            this.decorations.push(building);
+            this.scene.add(building);
+        }
     }
-}
-
+    
+    // 3. WHITE HOUSE PNG STANDALONE METHOD
+    // Add this NEW method to BaseLevel.js:
+    
+    async addWhiteHousePNG(invisibleBuilding, buildingWidth, buildingHeight, buildingZ) {
+        try {
+            const texture = await this.loadTexture(this.config.assets.headquarters);
+            texture.colorSpace = THREE.SRGBColorSpace;
+            texture.generateMipmaps = false;
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            
+            const material = new THREE.MeshBasicMaterial({
+                map: texture,
+                transparent: true,
+                alphaTest: 0.1,
+                side: THREE.DoubleSide,
+                toneMapped: false,
+                opacity: 1.0
+            });
+            
+            // ✅ STANDALONE WHITE HOUSE: Position directly in world, not on building
+            const imageWidth = buildingWidth;
+            const imageHeight = buildingHeight;
+            
+            const geometry = new THREE.PlaneGeometry(imageWidth, imageHeight);
+            const whiteHouseImage = new THREE.Mesh(geometry, material);
+            
+            // ✅ WORLD POSITION: Place directly in scene at correct position
+            whiteHouseImage.position.set(0, buildingHeight / 2, buildingZ);
+            whiteHouseImage.castShadow = false;
+            whiteHouseImage.receiveShadow = false;
+            
+            // ✅ ADD TO SCENE: Directly, not as child of invisible building
+            this.decorations.push(whiteHouseImage);
+            this.scene.add(whiteHouseImage);
+            
+            console.log(`✅ Standalone White House PNG created at Z=${buildingZ}`);
+            
+        } catch (error) {
+            console.warn(`⚠️ Could not load White House PNG, using placeholder`);
+            // Create a simple white placeholder
+            const placeholderMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+            const placeholderGeometry = new THREE.BoxGeometry(buildingWidth, buildingHeight, 2);
+            const placeholder = new THREE.Mesh(placeholderGeometry, placeholderMaterial);
+            placeholder.position.set(0, buildingHeight / 2, buildingZ);
+            
+            this.decorations.push(placeholder);
+            this.scene.add(placeholder);
+        }
+    }
 // REPLACE the addHeadquartersImage method in BaseLevel.js with this version:
 
-async addHeadquartersImage(building) {
+async addHeadquartersImage(building, buildingWidth, buildingHeight, buildingDepth) {
     try {
         const texture = await this.loadTexture(this.config.assets.headquarters);
         texture.colorSpace = THREE.SRGBColorSpace;
@@ -377,28 +434,21 @@ async addHeadquartersImage(building) {
             opacity: 1.0
         });
         
-        // ✅ UPDATED: Full coverage texture sizes
-        let imageWidth, imageHeight;
-        if (this.levelNumber === 4) {
-            // ✅ FULL COVERAGE: Match building dimensions exactly
-            imageWidth = 20;   // Same as building width
-            imageHeight = 12;  // Same as building height
-        } else {
-            // Standard size for other levels
-            imageWidth = 12;
-            imageHeight = 8;
-        }
+        // ✅ PROPORTIONAL: Image size matches building exactly
+        const imageWidth = buildingWidth;   // Match building width exactly
+        const imageHeight = buildingHeight; // Match building height exactly
         
         const geometry = new THREE.PlaneGeometry(imageWidth, imageHeight);
         const image = new THREE.Mesh(geometry, material);
         
-        // ✅ POSITIONED: Flush against front face
-        image.position.set(0, 0, this.levelNumber === 4 ? 3.01 : 2.01);
+        // ✅ POSITIONED: Flush against front face (accounting for depth)
+        const frontFaceOffset = buildingDepth / 2 + 0.01; // Just in front of building face
+        image.position.set(0, 0, frontFaceOffset);
         image.castShadow = false;
         image.receiveShadow = false;
         
         building.add(image);
-        console.log(`✅ Added full coverage headquarters image: ${this.config.assets.headquarters}`);
+        console.log(`✅ Added properly sized headquarters image: ${imageWidth}x${imageHeight}`);
     } catch (error) {
         console.warn(`⚠️ Could not load headquarters image, using placeholder`);
     }
@@ -498,68 +548,95 @@ async addHeadquartersImage(building) {
         await this.createEnvironmentDecorations();
     }
     
-
     async createSoldierDecorations() {
         const assets = this.config.assets;
         
-        // ✅ SOLDIER VISIBILITY FIX: Move soldiers much further apart and away from White House
-        
-        // ✅ MOVED: Left soldier further left and forward (away from White House)
-        await this.createSoldierImage(assets.leftSoldier, -20, 3, this.config.zones.goalArea + 4);
-        
-        // ✅ MOVED: Right soldier further right and forward (away from White House)  
-        await this.createSoldierImage(assets.rightSoldier, 20, 3, this.config.zones.goalArea + 4);
-        
-        // ✅ ENHANCED: Additional soldiers for better D.C. atmosphere
-        if (assets.additionalSoldiers) {
-            for (let i = 0; i < assets.additionalSoldiers.length; i++) {
-                // ✅ POSITIONED: Even further apart for maximum visibility
-                const xPos = (i % 2 === 0) ? -35 : 35; // Much further apart
-                const zPos = this.config.zones.goalArea + 6; // Even further forward
-                await this.createSoldierImage(assets.additionalSoldiers[i], xPos, 4, zPos);
+        if (this.levelNumber === 4) {
+            // ✅ MOVE SOLDIERS CLOSER TO WHITE HOUSE
+            // White House is at Z = -19, so put soldiers at Z = -17 (closer to White House)
+            const soldierZ = -17; // ✅ MOVED CLOSER: From -22 to -17
+            
+            // ✅ CLOSER SPACING: Move soldiers closer to center
+            await this.createSoldierImage(assets.leftSoldier, -12, 3, soldierZ);   // ✅ CLOSER: From -25 to -12
+            await this.createSoldierImage(assets.rightSoldier, 12, 3, soldierZ);   // ✅ CLOSER: From 25 to 12
+            
+            console.log(`🇺🇸 MAGA soldiers positioned at Z=${soldierZ} (closer to White House)`);
+            
+            // ✅ ADDITIONAL SOLDIERS: If available, position them closer too
+            if (assets.additionalSoldiers) {
+                for (let i = 0; i < assets.additionalSoldiers.length; i++) {
+                    const xPos = (i % 2 === 0) ? -20 : 20; // ✅ CLOSER: From -40/40 to -20/20
+                    const zPos = soldierZ - 1; // Slightly behind main soldiers
+                    await this.createSoldierImage(assets.additionalSoldiers[i], xPos, 4, zPos);
+                }
+            }
+        } else {
+            // Standard positioning for other levels
+            const soldierZ = this.config.zones.goalArea + 2;
+            
+            await this.createSoldierImage(assets.leftSoldier, -15, 3, soldierZ);
+            await this.createSoldierImage(assets.rightSoldier, 15, 3, soldierZ);
+            
+            if (assets.additionalSoldiers) {
+                for (let i = 0; i < assets.additionalSoldiers.length; i++) {
+                    const xPos = (i % 2 === 0) ? -25 : 25;
+                    const zPos = soldierZ + 2;
+                    await this.createSoldierImage(assets.additionalSoldiers[i], xPos, 4, zPos);
+                }
             }
         }
         
-        console.log('✅ MAGA soldiers repositioned for maximum visibility - moved away from White House');
+        console.log('✅ Soldiers repositioned closer to White House');
     }
     
     // ===== ENHANCED SOLDIER IMAGE CREATION =====
     // Replace the createSoldierImage method in BaseLevel.js:
     
-    async createSoldierImage(filename, x, y, z) {
-        try {
-            const texture = await this.loadTexture(filename);
-            texture.colorSpace = THREE.SRGBColorSpace;
-            texture.generateMipmaps = false;
-            texture.minFilter = THREE.LinearFilter;
-            texture.magFilter = THREE.LinearFilter;
-            
-            const material = new THREE.MeshBasicMaterial({
-                map: texture,
-                transparent: true,
-                alphaTest: 0.1,
-                side: THREE.DoubleSide,
-                toneMapped: false,
-                opacity: 1.0
-            });
-            
-            // ✅ VISIBILITY FIX: Make soldiers larger and more prominent
-            const geometry = new THREE.PlaneGeometry(5, 5); // ✅ INCREASED: from 4x4 to 5x5
-            const image = new THREE.Mesh(geometry, material);
-            
-            image.position.set(x, y, z);
-            image.castShadow = false;
-            image.receiveShadow = false;
-            
-            this.decorations.push(image);
-            this.scene.add(image);
-            
-            console.log(`✅ Added visible soldier decoration: ${filename} at (${x}, ${y}, ${z})`);
-        } catch (error) {
-            console.warn(`⚠️ Could not load ${filename}, using placeholder`);
-            this.createPlaceholderCube(x, y, z, 0xff6600);
+async createSoldierImage(filename, x, y, z) {
+    try {
+        const texture = await this.loadTexture(filename);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.generateMipmaps = false;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            alphaTest: 0.1,
+            side: THREE.DoubleSide,
+            toneMapped: false,
+            opacity: 1.0
+        });
+        
+        // ✅ SOLDIER SIZE: Appropriate size for Level 4 soldiers
+        let soldierWidth, soldierHeight;
+        if (this.levelNumber === 4) {
+            // ✅ LEVEL 4: Larger MAGA soldiers to match White House scale
+            soldierWidth = 6;   // Wider for better visibility
+            soldierHeight = 6;  // Taller to match White House proportions
+        } else {
+            // Standard size for other levels
+            soldierWidth = 4;
+            soldierHeight = 4;
         }
+        
+        const geometry = new THREE.PlaneGeometry(soldierWidth, soldierHeight);
+        const image = new THREE.Mesh(geometry, material);
+        
+        image.position.set(x, y, z);
+        image.castShadow = false;
+        image.receiveShadow = false;
+        
+        this.decorations.push(image);
+        this.scene.add(image);
+        
+        console.log(`✅ Added ${this.levelNumber === 4 ? 'MAGA' : 'standard'} soldier: ${filename} at (${x}, ${y}, ${z}) size ${soldierWidth}x${soldierHeight}`);
+    } catch (error) {
+        console.warn(`⚠️ Could not load ${filename}, using placeholder`);
+        this.createPlaceholderCube(x, y, z, 0xff6600);
     }
+}
     // Level 4 specific methods for BaseLevel.js
 // Add these methods to your BaseLevel.js class
 
@@ -668,6 +745,7 @@ createDCBushes() {
     console.log(`✅ Created ${bushPositions.length} D.C. bushes with natural shapes`);
 }
 
+/*
 // 3. ENHANCED: D.C. Monuments (improved version)
 createDCMonuments() {
     console.log('🏛️ Creating enhanced D.C. monuments...');
@@ -714,6 +792,7 @@ createDCMonuments() {
     
     console.log('✅ Enhanced D.C. monuments created');
 }
+    */
 
 // 6. UPDATE: Enhanced environment decorations dispatcher
 async createEnvironmentDecorations() {
