@@ -549,6 +549,8 @@ async debugJumpToLevel3() {
     
     this.isPlaying = true;
 }
+// In Game.js - Replace your debugJumpToLevel4() method with this fixed version:
+
 async debugJumpToLevel4() {
     console.log('🏛️ Jumping to Level 4: Washington D.C. via shortcut...');
     
@@ -562,10 +564,20 @@ async debugJumpToLevel4() {
     this.isPlaying = false;
     
     try {
+        // ✅ SET LEVEL FIRST: Before any other operations
         this.currentLevel = 4;
+        this.lastLoadedLevel = 4;
+        
+        // ✅ SET FROG COUNT IMMEDIATELY: Before UI updates
         this.frogsRescued = 0;
-        this.totalFrogsNeeded = 7; // Level 4 has 7 frogs
+        this.totalFrogsNeeded = 7; // ✅ FORCE Level 4 to 7 frogs
         this.clearSavedFrogImages();
+        
+        // ✅ UPDATE UI IMMEDIATELY: With correct level and frog count
+        this.ui.updateLevel(4);
+        this.ui.updateFrogProgress(0, 7);
+        
+        console.log('🎯 Level 4 state set: 7 frogs needed, UI updated');
         
         // Stop current music and start Level 4 music
         if (this.audioManager) {
@@ -590,7 +602,6 @@ async debugJumpToLevel4() {
         // Load Level 4 using new system
         console.log('🏗️ Loading Level 4 using new LevelFactory system...');
         await this.loadLevel(4);
-        this.lastLoadedLevel = 4;
         
         // Reset player
         if (this.player) {
@@ -598,9 +609,8 @@ async debugJumpToLevel4() {
             this.player.setPosition(0, 0, 17);
         }
         
-        // Update UI
-        this.ui.updateLevel(this.currentLevel);
-        this.ui.updateFrogProgress(this.frogsRescued, this.totalFrogsNeeded);
+        // ✅ VERIFY: Final state is correct
+        console.log(`✅ Level 4 verification: currentLevel=${this.currentLevel}, totalFrogs=${this.totalFrogsNeeded}`);
         
         this.isLoadingLevel = false;
         this.isPlaying = true;

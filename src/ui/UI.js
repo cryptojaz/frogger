@@ -260,33 +260,34 @@ export class UI {
         }
     }
     
-// Update this method in UI.js:
+// In UI.js - Replace the updateLevel method with this corrected version:
+
 updateLevel(level) {
     if (this.elements.levelCount) {
         const levelNames = {
             1: "1: Metaverse City",
-            2: "2: Jungle Swamp",
-            3: "3: Mars Colony", // ✅ Add Mars Colony
-            4: "4: Washington D.C.",
+            2: "2: Jungle Swamp", 
+            3: "3: Mars Colony",
+            4: "4: Washington D.C.",  // ✅ FIXED: Was showing "3: Mars Colony"
             5: "5: Coming Soon"
         };
         
         this.elements.levelCount.textContent = levelNames[level] || level.toString();
     }
     
-    // ✅ Update start message for Level 3
-    if (level === 3 && this.elements.startMessage) {
+    // ✅ UPDATE start message for Level 4 (was incorrectly set for Level 3)
+    if (level === 4 && this.elements.startMessage) {  // ✅ CHANGED: from level === 3 to level === 4
         const titleElement = this.elements.startMessage.querySelector('h2');
         const descElements = this.elements.startMessage.querySelectorAll('p');
         
         if (titleElement) {
-            titleElement.textContent = 'Level 3: Mars Colony';
+            titleElement.textContent = 'Level 4: Washington D.C.';  // ✅ FIXED: Level 4 title
         }
         if (descElements[0]) {
-            descElements[0].textContent = 'Use arrow keys to move - FASTEST gameplay yet!';
+            descElements[0].textContent = 'Use arrow keys to move - Navigate D.C. traffic!';  // ✅ FIXED: Level 4 description
         }
         if (descElements[1]) {
-            descElements[1].textContent = 'Save 6 frogs! Dodge alien vehicles and ride cybertaxis to reach SpaceX HQ!';
+            descElements[1].textContent = 'Save 7 frogs! Dodge government vehicles and ride patriot buses to reach the White House!';  // ✅ FIXED: 7 frogs for Level 4
         }
     }
 }
