@@ -97,45 +97,85 @@ export class Game {
             throw error;
         }
     }
-    
-    setupRenderer() {
-        if (!this.canvas) {
-            console.error('❌ Canvas not found!');
-            return;
-        }
-        
-        this.renderer = new THREE.WebGLRenderer({ 
-            canvas: this.canvas,
-            antialias: true,
-            alpha: false
-        });
-        
-        // IMPORTANT: Set canvas to full screen
-        this.canvas.style.width = '100vw';
-        this.canvas.style.height = '100vh';
-        this.canvas.style.display = 'block';
-        this.canvas.style.position = 'fixed';
-        this.canvas.style.top = '0';
-        this.canvas.style.left = '0';
-        this.canvas.style.zIndex = '1';
-        
-        // Set actual render size
-        const width = window.innerWidth;
-        const height = window.innerHeight;
-        
-        this.renderer.setSize(width, height);
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        this.renderer.shadowMap.enabled = true;
-        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        this.renderer.setClearColor(0x87CEEB); // Sky blue
-        
-        // Memory optimization
-        this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-        
-        console.log(`🖥️ Renderer setup complete: ${width}x${height}`);
-        console.log('🖥️ Canvas styled for full screen');
+    // In Game.js - Replace your setupRenderer() method with this:
+
+setupRenderer() {
+    if (!this.canvas) {
+        console.error('❌ Canvas not found!');
+        return;
     }
     
+    // ✅ FIREFOX FIX: Detect Firefox and adjust settings
+    const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
+    
+    this.renderer = new THREE.WebGLRenderer({ 
+        canvas: this.canvas,
+        antialias: !isFirefox, // ✅ FIREFOX FIX: Disable antialiasing on Firefox
+        alpha: false,
+        powerPreference: isFirefox ? "default" : "high-performance" // ✅ FIREFOX FIX: Conservative power
+    });
+    
+    // Canvas styling (keep your existing code)
+    this.canvas.style.width = '100vw';
+    this.canvas.style.height = '100vh';
+    this.canvas.style.display = 'block';
+    this.canvas.style.position = 'fixed';
+    this.canvas.style.top = '0';
+    this.canvas.style.left = '0';
+    this.canvas.style.zIndex = '1';
+    
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    
+    this.renderer.setSize(width, height);
+    
+    // ✅ FIREFOX FIX: Conservative pixel ratio for Firefox
+    const pixelRatio = isFirefox ? 
+        Math.min(window.devicePixelRatio, 1.5) : 
+        Math.min(window.devicePixelRatio, 2);
+    this.renderer.setPixelRatio(pixelRatio);
+    
+    // ✅ FIREFOX FIX: Reduce shadow quality on Firefox
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = isFirefox ? 
+        THREE.BasicShadowMap : 
+        THREE.PCFSoftShadowMap;
+    
+    this.renderer.setClearColor(0x87CEEB);
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    
+    console.log(`🖥️ Renderer setup for ${isFirefox ? 'Firefox' : 'Chrome'}: ${width}x${height}, pixelRatio: ${pixelRatio}`);
+}
+
+// ✅ FIREFOX FIX: Add this new method to Game.js for background tab handling
+setupVisibilityHandlers() {
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            console.log('👁️ Tab backgrounded - pausing');
+            this.isTabVisible = false;
+            
+            // ✅ FIREFOX FIX: More aggressive pause for Firefox
+            if (navigator.userAgent.toLowerCase().includes('firefox')) {
+                this.isPaused = true;
+            }
+            
+            if (this.audioManager) {
+                this.audioManager.pauseMusic();
+            }
+        } else {
+            console.log('👁️ Tab returned - resuming');
+            this.isTabVisible = true;
+            
+            // ✅ FIREFOX FIX: Resume with delay
+            setTimeout(() => {
+                this.isPaused = false;
+                if (this.audioManager && !this.audioManager.isMuted) {
+                    this.audioManager.resumeMusic();
+                }
+            }, 200);
+        }
+    });
+}
     setupScene() {
         this.scene = new THREE.Scene();
         
@@ -892,6 +932,7 @@ async emergencyReset() {
     
     console.log('✅ Emergency reset complete');
 }
+
 
 async loadLevel(levelNumber) {
     // Verify level number is valid

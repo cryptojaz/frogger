@@ -62,7 +62,7 @@ export class LandingPage {
                         
                         <div class="landing-footer">
                             <p>Built with Three.js • Modern Web Technology</p>
-                            <div class="version-info">v1.1.0</div>
+                            <div class="version-info">v1.1.1</div>
                         </div>
                     </div>
                 </div>

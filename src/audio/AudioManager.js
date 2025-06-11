@@ -137,24 +137,22 @@ export class AudioManager {
         }
     }
     
-    playMusic(name = 'background') {
-        if (!this.isInitialized || this.isMuted || !this.sounds[name]) {
-            console.warn(`🎵 Cannot play music '${name}': ${!this.isInitialized ? 'not initialized' : this.isMuted ? 'muted' : 'sound not found'}`);
-            return;
-        }
+// ✅ SIMPLE FIX: Enhanced music playback with forced cleanup
+playMusic(name = 'background') {
+    if (!this.isInitialized || this.isMuted || !this.sounds[name]) {
+        return;
+    }
+    
+    try {
+        // ✅ FIREFOX FIX: Always stop everything first
+        this.stopMusic();
         
-        try {
-            // ✅ FIXED: Always enable audio context first
-            this.enableAudioContext();
-            
-            // Stop current music
-            this.stopMusic();
-            
+        // ✅ FIREFOX FIX: Small delay for Firefox to process the stop
+        setTimeout(() => {
             const music = this.sounds[name];
             music.currentTime = 0;
             music.volume = this.musicVolume;
             
-            // ✅ FIXED: Better error handling for production autoplay policy
             const playPromise = music.play();
             
             if (playPromise !== undefined) {
@@ -165,21 +163,18 @@ export class AudioManager {
                     })
                     .catch(error => {
                         console.warn(`🎵 Music autoplay blocked for ${name}:`, error.message);
-                        
-                        // ✅ NEW: Store the music to play after user interaction
                         this.pendingMusic = { name, music };
-                        
-                        // ✅ NEW: Set up one-time click listener to enable music
                         if (!this.autoplayListenerAdded) {
                             this.setupAutoplayUnblock();
                         }
                     });
             }
-            
-        } catch (error) {
-            console.warn(`Failed to play music ${name}:`, error);
-        }
+        }, 100); // 100ms delay for Firefox
+        
+    } catch (error) {
+        console.warn(`Failed to play music ${name}:`, error);
     }
+}
     
     // ✅ NEW: Add method to handle autoplay unblocking
     setupAutoplayUnblock() {
@@ -246,13 +241,25 @@ export class AudioManager {
         this.playMusic(musicName);
     }
     
-    stopMusic() {
-        if (this.currentMusic) {
-            this.currentMusic.pause();
-            this.currentMusic.currentTime = 0;
-            this.currentMusic = null;
-        }
+// ✅ SIMPLE FIX: Force stop all audio instances
+stopMusic() {
+    console.log('🛑 Stopping music');
+    
+    if (this.currentMusic) {
+        this.currentMusic.pause();
+        this.currentMusic.currentTime = 0;
+        this.currentMusic = null;
     }
+    
+    // ✅ FIREFOX FIX: Stop ALL audio elements, not just tracked ones
+    const allAudio = document.querySelectorAll('audio');
+    allAudio.forEach(audio => {
+        if (!audio.paused) {
+            audio.pause();
+            audio.currentTime = 0;
+        }
+    });
+}
     
     pauseMusic() {
         if (this.currentMusic && !this.currentMusic.paused) {
