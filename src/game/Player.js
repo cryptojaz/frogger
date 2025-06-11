@@ -31,7 +31,7 @@ export class Player {
     async create() {
         await this.loadTextures();
         this.createSprite();
-        this.createGroundIndicator(); // ✅ NEW: Add ground circle
+        //this.createGroundIndicator(); // ✅ NEW: Add ground circle
         this.scene.add(this.mesh);
         console.log('🐸 Directional sprite frog created with ground indicator');
     }
