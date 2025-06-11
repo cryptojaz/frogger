@@ -292,7 +292,8 @@ updateLevel(level) {
     }
 }
 
-// Update this method in UI.js:
+// REPLACE the handleContinueGame() method in UI.js with this corrected version:
+
 handleContinueGame() {
     const currentLevel = parseInt(this.elements.levelCount.textContent.match(/\d+/)?.[0]) || 1;
     const nextLevel = currentLevel + 1;
@@ -302,17 +303,21 @@ handleContinueGame() {
         this.emit('continueGame');
     } else if (nextLevel === 3) {
         console.log('🚀 Progressing to Level 3: Mars Colony');
-        this.emit('continueGame'); // ✅ Actually progress to Level 3
+        this.emit('continueGame');
     } else if (nextLevel === 4) {
-        // Level 3 → Level 4: Show coming soon
-        this.showLevel4ComingSoon();
+        // ✅ FIXED: Actually progress to Level 4 instead of showing "coming soon"
+        console.log('🏛️ Progressing to Level 4: Washington D.C.');
+        this.emit('continueGame');
+    } else if (nextLevel === 5) {
+        // Level 4 → Level 5: Show coming soon for Level 5
+        this.showLevelComingSoon(nextLevel);
     } else {
         // Future levels: Default to coming soon
         this.showLevelComingSoon(nextLevel);
     }
 }
 
-// Update this method in UI.js:
+// 2. FIX the showLevelComplete() method - find this section and update:
 showLevelComplete(nextLevel) {
     this.hideAllMessages();
     this.elements.levelCompleteMessage.classList.remove('hidden');
@@ -327,11 +332,14 @@ showLevelComplete(nextLevel) {
             continueBtn.textContent = 'ENTER JUNGLE SWAMP';
             continueBtn.disabled = false;
         } else if (nextLevel === 3) {
-            continueBtn.textContent = 'ENTER MARS COLONY'; // ✅ Enable Level 3
+            continueBtn.textContent = 'ENTER MARS COLONY';
             continueBtn.disabled = false;
         } else if (nextLevel === 4) {
             continueBtn.textContent = 'ENTER WASHINGTON D.C.';
-            continueBtn.disabled = true;
+            continueBtn.disabled = false;  // ✅ FIXED: Enable the button!
+        } else if (nextLevel === 5) {
+            continueBtn.textContent = 'LEVEL 5 COMING SOON';
+            continueBtn.disabled = true;   // Only Level 5+ should be disabled
         } else {
             continueBtn.textContent = 'CONTINUE';
             continueBtn.disabled = false;
@@ -345,6 +353,8 @@ showLevelComplete(nextLevel) {
             levelCompleteTitle.textContent = 'LEVEL COMPLETE! You made it to GFL HQ!';
         } else if (nextLevel === 3) {
             levelCompleteTitle.textContent = 'JUNGLE CONQUERED! Welcome to Mars!';
+        } else if (nextLevel === 4) {
+            levelCompleteTitle.textContent = 'MARS CONQUERED! Welcome to Washington D.C.!';
         } else {
             levelCompleteTitle.textContent = 'LEVEL COMPLETE!';
         }
@@ -352,7 +362,6 @@ showLevelComplete(nextLevel) {
     
     console.log(`📱 Level complete screen shown for level ${nextLevel}`);
 }
-    
     // ✅ Frog progress indicator
     updateFrogProgress(currentFrogs, totalFrogs) {
         const frogCountElement = document.getElementById('frog-count');

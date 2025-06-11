@@ -1060,6 +1060,7 @@ class PatriotBus extends Vehicle {
     constructor(scene) {
         super(scene, 'patriotbus');
         this.isRideable = true; // Rideable transport
+        this.type = 'patriotbus';
     }
     
     create() {
@@ -1150,39 +1151,36 @@ class Level4Vehicle extends Vehicle {
         super(scene, vehicleType);
     }
     
-    create() {
-        console.log(`🏛️ Creating Level 4 ${this.type} vehicle`);
-        
-        const size = { width: 5.0, height: 2.5 };
-        const geometry = new THREE.PlaneGeometry(size.width, size.height);
-        
-        // Try to load texture, fallback to colored geometry
-        let material;
-        try {
-            const texture = this.loadLevel4Texture(`${this.type}.png`);
-            material = new THREE.MeshBasicMaterial({
-                map: texture,
-                transparent: true,
-                alphaTest: 0.1,
-                side: THREE.DoubleSide
-            });
-        } catch (error) {
-            // Fallback to colored geometry
-            material = new THREE.MeshLambertMaterial({ 
-                color: this.getLevel4VehicleColor()
-            });
-            console.warn(`Using placeholder for ${this.type}`);
-        }
-        
-        this.mesh = new THREE.Mesh(geometry, material);
-        this.mesh.rotation.x = -Math.PI / 2;
-        this.mesh.rotation.y = 0;
-        this.mesh.rotation.z = -Math.PI;
-        this.mesh.position.y = 5.0;
-        
-        this.scene.add(this.mesh);
-        console.log(`✅ Level 4 ${this.type} vehicle created`);
-    }
+// In LevelFactory.js - Replace the PatriotBus.create() method with this:
+
+create() {
+    console.log(`🚌 Creating Level 4 Patriot Bus`);
+    
+    const size = { width: 8.0, height: 4.0 }; // Large bus
+    const geometry = new THREE.PlaneGeometry(size.width, size.height);
+    
+    const texture = this.loadPatriotBusTexture('patriotbus.png');
+    
+    const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        alphaTest: 0.1,
+        side: THREE.DoubleSide
+    });
+    
+    this.mesh = new THREE.Mesh(geometry, material);
+    this.mesh.rotation.x = -Math.PI / 2;
+    this.mesh.rotation.y = 0;
+    this.mesh.rotation.z = -Math.PI;
+    this.mesh.position.y = 0.1; // Water level
+    
+    // ✅ FIX: Ensure type is set for boundary detection
+    this.type = 'patriotbus';
+    
+    this.scene.add(this.mesh);
+    console.log(`✅ Patriot Bus created with boundary detection enabled`);
+}
+
     
     loadLevel4Texture(filename) {
         const textureLoader = new THREE.TextureLoader();

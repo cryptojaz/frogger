@@ -479,7 +479,7 @@ async addHeadquartersImage(building, buildingWidth, buildingHeight, buildingDept
                 if (vehicle) {
                     vehicle.create();
                     
-                    const bounds = this.screenWidth / 2 + 10;
+                    const bounds = this.screenWidth / 2 + 25;
                     const startX = direction > 0 ? 
                         -bounds + (i * spacing) : 
                         bounds - (i * spacing);
@@ -494,39 +494,44 @@ async addHeadquartersImage(building, buildingWidth, buildingHeight, buildingDept
         console.log(`✅ Created ${this.obstacles.length} road vehicles`);
     }
     
-    async createWaterObstacles() {
-        const waterConfig = this.config.waterObstacles;
+// In BaseLevel.js - Update the createWaterObstacles() method to ensure type is set:
+
+async createWaterObstacles() {
+    const waterConfig = this.config.waterObstacles;
+    
+    waterConfig.lanes.forEach((z, laneIndex) => {
+        const direction = waterConfig.directions[laneIndex];
+        const speed = waterConfig.speeds[laneIndex];
+        const obstacleCount = waterConfig.obstaclesPerLane;
+        const spacing = waterConfig.spacing;
         
-        waterConfig.lanes.forEach((z, laneIndex) => {
-            const direction = waterConfig.directions[laneIndex];
-            const speed = waterConfig.speeds[laneIndex];
-            const obstacleCount = waterConfig.obstaclesPerLane;
-            const spacing = waterConfig.spacing;
+        for (let i = 0; i < obstacleCount; i++) {
+            // Select obstacle type based on level
+            const obstacleType = waterConfig.types[Math.floor(Math.random() * waterConfig.types.length)];
+            const obstacle = this.createObstacleByType(obstacleType);
             
-            for (let i = 0; i < obstacleCount; i++) {
-                // Select obstacle type based on level
-                const obstacleType = waterConfig.types[Math.floor(Math.random() * waterConfig.types.length)];
-                const obstacle = this.createObstacleByType(obstacleType);
+            if (obstacle) {
+                obstacle.create();
                 
-                if (obstacle) {
-                    obstacle.create();
-                    
-                    const bounds = this.screenWidth / 2 + 10;
-                    const startX = direction > 0 ? 
-                        -bounds + (i * spacing) : 
-                        bounds - (i * spacing);
-                    
-                    obstacle.setPosition(startX, 0.1, z);
-                    obstacle.setVelocity(direction * speed, 0, 0);
-                    obstacle.isRideable = waterConfig.allRideable;
-                    obstacle.type = obstacleType;
-                    this.obstacles.push(obstacle);
-                }
+                const bounds = this.screenWidth / 2 + 25;
+                const startX = direction > 0 ? 
+                    -bounds + (i * spacing) : 
+                    bounds - (i * spacing);
+                
+                obstacle.setPosition(startX, 0.1, z);
+                obstacle.setVelocity(direction * speed, 0, 0);
+                obstacle.isRideable = waterConfig.allRideable;
+                
+                // ✅ FIX: Ensure type is always set correctly
+                obstacle.type = obstacleType;
+                
+                this.obstacles.push(obstacle);
             }
-        });
-        
-        console.log(`✅ Created water/transport obstacles`);
-    }
+        }
+    });
+    
+    console.log(`✅ Created water/transport obstacles with proper type assignment`);
+}
     
     createVehicleByType(type) {
         // This will be implemented by specific level classes or use a factory
@@ -1479,30 +1484,40 @@ createSpaceDomes() {
     }
     
     calculateRespawnPosition(obstacle, direction) {
+        // Find all obstacles in the same lane (same Z position)
         const laneObstacles = this.obstacles.filter(o => 
             o !== obstacle && 
             Math.abs(o.position.z - obstacle.position.z) < 1
         );
         
+        const standardSpacing = 17; // Same as initial creation
+        const edgeBuffer = this.screenWidth / 2 + 10;
+        
         if (laneObstacles.length === 0) {
-            const screenBound = this.screenWidth / 2 + 15;
-            return direction === 'right' ? -screenBound - 5 : screenBound + 5;
+            // No other obstacles in lane, spawn from edge
+            return direction === 'right' ? -edgeBuffer - 15 : edgeBuffer + 15;
         }
         
-        let furthestObstacle;
+        // Find the last vehicle in the direction we're spawning
+        let lastVehicle;
         if (direction === 'right') {
-            furthestObstacle = laneObstacles.reduce((leftmost, current) => 
+            // Find the leftmost vehicle (last in the train moving right)
+            lastVehicle = laneObstacles.reduce((leftmost, current) => 
                 current.position.x < leftmost.position.x ? current : leftmost
             );
-            return furthestObstacle.position.x - 17;
+            // Spawn behind it with proper spacing, but ensure it's off-screen
+            const newPos = lastVehicle.position.x - standardSpacing;
+            return Math.min(newPos, -edgeBuffer - 5); // Force off-screen if too close
         } else {
-            furthestObstacle = laneObstacles.reduce((rightmost, current) => 
+            // Find the rightmost vehicle (last in the train moving left)
+            lastVehicle = laneObstacles.reduce((rightmost, current) => 
                 current.position.x > rightmost.position.x ? current : rightmost
             );
-            return furthestObstacle.position.x + 17;
+            // Spawn behind it with proper spacing, but ensure it's off-screen
+            const newPos = lastVehicle.position.x + standardSpacing;
+            return Math.max(newPos, edgeBuffer + 5); // Force off-screen if too close
         }
     }
-    
     getObstacles() {
         return this.obstacles;
     }

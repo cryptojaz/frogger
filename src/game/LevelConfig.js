@@ -279,7 +279,7 @@ export const LEVEL_CONFIGS = {
         laneMarkings: true,
         dcBushes: true,           
         americanFlags: true,      
-        dcMonuments: true,        
+        dcMonuments: false,        
         potomacRiver: true,       
         governmentBuildings: true 
     }
